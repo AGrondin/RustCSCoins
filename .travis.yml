@@ -11,3 +11,38 @@ script:
   - cargo build
 
 cache: cargo
+
+
+
+
+
+env:
+  global:
+    - BUILD_DIRECTORY=*
+    - TRELLOBST_DIR=${HOME}/.TrelloBST
+    - TRELLOBST_EXEC=${TRELLOBST_DIR}/TrelloBST-${TRAVIS_OS_NAME}
+    - secure: B58fvyYie//EDrPalsMmjHFZFRYnzIv4akrgrbhyYpRpRUUJGngDlZkCAGf2WlkMrxC4R65/Odpm7P6RLFtNYL1m+jYUXaP6go2hmlCwMOGnZ/UwyoMAmscCuQKN4+9BFXlUS1LKenRr9Z3bniDcpja0X7WYnVAWR8juNpoj0Ld4BYs++k1+CdO5mgHpp6wBMu2euJ3e8zT4YSa9GVGrQRVxSocywKvyy66cAPXZMrmp2Eey5HKaQKY+GL62Y6n6eid15yUTRI2HIGLq0jcv0YwdihdsCnVwqA6cl0j8PCqMyhz7I5WxiTMjBiNVevg6DppLh1aXU0NhgbhCNH4cHnmWio3+0QHAe3nLcz7Cs1ECoy5bkRhaEo190MT27nSw+jAcNHfwmqv8kvKswx4Qx/wogXIPl+KM4yb99SAxNIhEoBW+fUFW5m3v16DaNVlS1lPA4Cw9GasPDlU3qSyoS4cYMbR9dmp8VhiCmCwVxpRhbjlOQrGVvS3dzD6Iv32HIk0xW/yuYp+Bhk25wOFmcno9OmGnLh/V82ODeuWfyPSpr+4EfNpGJEh0CBBnpn+Wm7JuE2NNsfwtcdSFYnXiW2Cx1VDdr+PVuG4GZFvoEHBYaNIJ+jJoPuO4h5rxt85tk184/pihQY5i4rAYjt+7AQlI2QaPt8CUpRiFBDEc1+o=
+    - secure: FvJ163pAVFEBotDZXGuKUI81ddRuSOW2wQsULTO+ikd4bODhHNJ4Y/60yQrym+e5+B6t3NyrQlDcYrc6GbTPYg+woWe8W+UO2/VGIcggnOHDbEBo+huzMCB7my4GrP125BY3M8yETRG97Nmh7eU9g4n2R6VyLw//5wh4e9fWnVG+iHITLy0ZWHw5bC3XjAhMD0S8/o/G2z6/mw6GdNUPXh0hzer06Cm2g6nfgdsK2NPj/8SUhmaBeceLvagWeiO3PkO2yNDbDiaOJiFyqoCGBy/tAbdSZDNbRyGrtLuq081eGm1MrXEWWvU5Kt4iVqFsVwzPIXg9MxTelx+XXQKo+nd/ra8e1clORCybGg5+vyVnLEvivHTXXCgrf6o1KyTqd1RTUq8MKnqkoYAPhTZtLGQSnxEoAu7mztAiXaN8E27nqReeJA4JeufFpP1mp1rNgN8qmgXQQpYckk7jvJq1x0D7DqtMPw3qPP19Vhn4u7NWhORR+v+gii47ukbzWCbhQ4tplZUTW2hheCHXe8WM76Fo65qSu4+LgeSCAzI+MsUMpH3IA3J+39iAz1kKYZK6vdPqke3WRQR3IAGiqJZKQN/IR0YlH+Eqc+MRGCFAIGm+VoBE3AWut8TY018iR1M4RwpXFpq0/lqnrZvJHEytiCZ6a5B01pBtS/i/Tv+g/0I=
+    - secure: v3aU8qRmI9a6416sM57F3ZBNqwS7n235iVigb++SDw8lmu095rTBqVSMihNx2okYESm8p5C/aVo7wJ9BicKshW/t4aSr6YCMd3x+TdJPG3H929BRdviV+bd0krZxnmH/GA96dnT+5E59V3QkUnCYJndAKftWCTIjwvDa9IqDYCqPAYdYHWBDwsrhf/LGgVxxh9x8kr/CAAVGbDpuEmj+oyReXY7+TzFyqGQ/q/HVNlqJXDpULh+vpS/yc13ocEw+uzJ88EvjpA1yC7bSGEDSxwJkzFwah4LfuJMSbfVb6mU7Vif3eXY8Hbq8e2UVRlImsdqCDIuS/vD8Rrz5anlBAKrdLrlgftF42Of/kXpCdoEuO6GSSXDzc7n7uEUJj1bHo7tyidz3DQbooKr0s2kkp365qSiKXOZHUp4g49946HD22gNbGeg+lQIz8im5tSiWdtMnIBR++ZQRshEUfmxRJ8aIyKhT8yrc9faenWTkvsn4kY/NLMpV/ahcrD0PkaiktsrP+jcCKQQILFa2XZLBFvSD6HsXgGKf5ziwY/qZ8XgaRQV6ihnC2m1uh3Klc95PA40RUJ8ChUuMCJ4Whua8S82tz/5fRpa/uCy5QoavnSOn1nJO3tEm6agCQM1X+dn4j72j8iyEIOPunnM4MkbpImC6oq4jFx/10r+wmVQSlbQ=
+    - secure: bT+uW+zAwzqrUMkcdBsl88Kujy0KODVPzkucA9ranMf5eD0R4DUy+Iws2Sz6yeCMz/tHzFabNrPHNnj/9SKcZf4o3TYtKWaq5jPNkDNREgd/+C245OdeNmK6A5fx1Y8V4bheIckdabtzc5ZcaGJq60dFXORtfvcwKfaVSDZ3oAT0UYRnK7ybNSCmGY7v0lhMET7s77bPiwNCqEqDdB27P84X6zIacnLJaRr6tt3J4yMS9jgyyA944fdGE3KLV01akFknVu2jyCNbjzbBkLh8aezFULKOLf4Q55c1+IFg3qRnJVfIEY8GZVfz1FZUsXSrHXPZLvbpdsgy7DpM1DJm2fOHPzD3guBGfZcPdlrjLUazVduuaOifeBTD/XvvfoJCH8vif7Rn13aPKykUsJ9a0KyqHR2nItqZ456+84gjs9ziDRHTIoJuFW+h/RiTh/fYBupc5eJ+GFVYlHNJnttS8i+FQNLf4/wa1BIYsuL05r4dXUei8BcWlT9QIYemkjRoXItxj/nMvCph12G1sXsa3ntqxLXAFLUI1nP1XHYO81TpkWTgzK2O4ldsrJX/36qNa3NTBg2evRv+U4HUDUcDhH+auI2uKJlfvh6PpfddFFATdNrszQmYjJVKeSOHWo9kjjbEMsmrPGxdn1gbRz5aW3eRzKALpmOJIdP3UZ5O1CI=
+
+before_install:
+  - wget -q https://github.com/Cyberunner23/TrelloBST/releases/download/v2.0.0-pre1/Travis-${TRAVIS_OS_NAME}-stable.tar.gz
+  - mkdir ${TRELLOBST_DIR}
+  - tar -xvf Travis-${TRAVIS_OS_NAME}-stable.tar.gz -C ${TRELLOBST_DIR}
+
+after_success:
+  - 'if [ ${TRAVIS_SECURE_ENV_VARS} = true ] ; then
+           tar -zcf build.tar.gz ${BUILD_DIRECTORY}
+        && export BUILD_LINK=$(curl --upload-file ./build.tar.gz https://transfer.sh/build.tar.gz)
+        && export TRELLO_CARD_TITLE="[${TRAVIS_BRANCH}][Travis-CI][${TRAVIS_OS_NAME}][rustc]: #${TRAVIS_BUILD_NUMBER} PASSED"
+        && export TRELLO_CARD_DESC="[Build]\: ${BUILD_LINK}"$''\n''"[Logs]\: https://travis-ci.org/${TRAVIS_REPO_SLUG}/jobs/${TRAVIS_JOB_ID}"
+        && ${TRELLOBST_EXEC} push --pass --title "${TRELLO_CARD_TITLE}" --description "${TRELLO_CARD_DESC}";
+    fi'
+
+after_failure:
+  - 'if [ ${TRAVIS_SECURE_ENV_VARS} = true ] ; then
+           export TRELLO_CARD_TITLE="[${TRAVIS_BRANCH}][Travis-CI][${TRAVIS_OS_NAME}][rustc]: #${TRAVIS_BUILD_NUMBER} FAILED"
+        && export TRELLO_CARD_DESC="[Logs]\: https://travis-ci.org/${TRAVIS_REPO_SLUG}/jobs/${TRAVIS_JOB_ID}"
+        && ${TRELLOBST_EXEC} push --fail --title "${TRELLO_CARD_TITLE}" --description "${TRELLO_CARD_DESC}";
+    fi'
