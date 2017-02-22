@@ -1,0 +1,6 @@
+[package]
+name = "cscoin-miner"
+version = "0.1.0"
+authors = ["Alexis Grondin <agrondin1@hotmail.com>"]
+
+[dependencies]
