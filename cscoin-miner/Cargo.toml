@@ -4,3 +4,6 @@ version = "0.1.0"
 authors = ["Alexis Grondin <agrondin1@hotmail.com>"]
 
 [dependencies]
+
+mersenne-twister = "0.1.0"
+rand = "*"
