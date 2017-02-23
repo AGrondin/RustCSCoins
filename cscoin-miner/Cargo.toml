@@ -6,4 +6,4 @@ authors = ["Alexis Grondin <agrondin1@hotmail.com>"]
 [dependencies]
 mersenne_twister = "1.0.0"
 rand = "*"
-sha2 = "*"
+rust-crypto = "^0.2"
