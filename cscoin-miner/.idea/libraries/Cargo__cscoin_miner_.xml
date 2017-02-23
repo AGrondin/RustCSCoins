@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Cargo &lt;cscoin-miner&gt;">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.20" />
+      <root url="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/mersenne_twister-1.0.0" />
+      <root url="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.3.15" />
+    </CLASSES>
+    <SOURCES />
+  </library>
+</component>
