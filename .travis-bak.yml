@@ -1,0 +1,13 @@
+language: rust
+sudo: false
+os:
+  - linux
+
+rust:
+  - stable
+
+script:
+  - cd cscoin-miner
+  - cargo build
+
+cache: cargo
