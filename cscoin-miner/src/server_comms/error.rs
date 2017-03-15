@@ -11,6 +11,7 @@ use std::string::FromUtf8Error;
 use serde_json::error::Error as JSONError;
 use websocket::result::WebSocketError;
 
+#[derive(Debug)]
 pub enum CSCoinClientError {
     IOErr(IOError),
     JSONErr(JSONError),
