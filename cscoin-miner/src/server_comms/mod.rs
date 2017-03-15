@@ -29,7 +29,8 @@ use serde_json::Number;
 
 use server_comms::error::CSCoinClientError;
 use server_comms::cmd_response::{CurrentChallenge,
-                                 ChallengeSolution};
+                                 ChallengeSolution,
+                                 RegisterWallet};
 
 pub mod cmd_response;
 pub mod error;
@@ -158,6 +159,29 @@ impl CSCoinClient {
     pub fn get_challenge_solution(&mut self, challenge_id: u64) -> Result<ChallengeSolution, CSCoinClientError> {
         let mut args: Map<String, Value> = Map::new();
         args.insert("challenge_id".to_string(), Value::Number(Number::from(challenge_id)));
+        self.send_command(CommandPayload{
+            command: "get_challenge_solution".to_string(),
+            args:    Some(args)
+        })
+    }
+
+
+    /// ## Register a New Wallet
+    ///
+    /// Register your Wallet's public key with the Central Authority.
+    ///
+    /// Command:   "register_wallet"
+    /// Arguments: name:      String
+    ///            key:       String
+    ///            signature: String
+    /// Response:  RegisterWallet
+    ///
+    /// References: https://github.com/csgames/cscoins#register-a-new-wallet
+    pub fn register_wallet(&mut self, name: String, key: String, signature: String)  -> Result<RegisterWallet, CSCoinClientError> {
+        let mut args: Map<String, Value> = Map::new();
+        args.insert("name".to_string(),      Value::String(name));
+        args.insert("key".to_string(),       Value::String(key));
+        args.insert("signature".to_string(), Value::String(signature));
         self.send_command(CommandPayload{
             command: "get_challenge_solution".to_string(),
             args:    Some(args)
