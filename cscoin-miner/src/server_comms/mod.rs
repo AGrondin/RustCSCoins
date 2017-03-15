@@ -30,7 +30,9 @@ use serde_json::Number;
 use server_comms::error::CSCoinClientError;
 use server_comms::cmd_response::{CurrentChallenge,
                                  ChallengeSolution,
-                                 RegisterWallet};
+                                 RegisterWallet,
+                                 Transactions,
+                                 CreateTransaction};
 
 pub mod cmd_response;
 pub mod error;
@@ -177,13 +179,61 @@ impl CSCoinClient {
     /// Response:  RegisterWallet
     ///
     /// References: https://github.com/csgames/cscoins#register-a-new-wallet
-    pub fn register_wallet(&mut self, name: String, key: String, signature: String)  -> Result<RegisterWallet, CSCoinClientError> {
+    pub fn register_wallet(&mut self, name: String, key: String, signature: String) -> Result<RegisterWallet, CSCoinClientError> {
         let mut args: Map<String, Value> = Map::new();
         args.insert("name".to_string(),      Value::String(name));
         args.insert("key".to_string(),       Value::String(key));
         args.insert("signature".to_string(), Value::String(signature));
         self.send_command(CommandPayload{
             command: "get_challenge_solution".to_string(),
+            args:    Some(args)
+        })
+    }
+
+
+    /// ## Get Transactions
+    ///
+    /// Get transactions history from the Central Authority.
+    ///
+    /// Command:   "get_transactions"
+    /// Arguments: start: u64
+    ///            count: u64
+    /// Response:  Transactions
+    ///
+    /// References: https://github.com/csgames/cscoins#get-transactions
+    pub fn get_transactions(&mut self, start: u64, count: u64) -> Result<Transactions, CSCoinClientError> {
+        let mut args: Map<String, Value> = Map::new();
+        args.insert("start".to_string(), Value::Number(Number::from(start)));
+        args.insert("count".to_string(), Value::Number(Number::from(count)));
+        self.send_command(CommandPayload{
+            command: "get_transactions".to_string(),
+            args:    Some(args)
+        })
+    }
+
+
+    //TODO: f64 error check (Rust has but JSON doesnt have NaN nor Infinity
+    // serde_json checks for that)
+    /// ## Create a new Transaction (Send coins)
+    ///
+    /// Create a new Transaction, sending coins to another wallet
+    ///
+    /// Command:   "create_transaction"
+    /// Arguments: source:    String
+    ///            recipient: String
+    ///            amount:    f64
+    ///            signature: String
+    /// Response:  CreateTransaction
+    ///
+    /// References: https://github.com/csgames/cscoins#create-a-new-transaction-send-coins
+    pub fn create_transaction(&mut self, source: String, recipient: String, amount: f64, signature: String)  -> Result<CreateTransaction, CSCoinClientError> {
+        let mut args: Map<String, Value> = Map::new();
+        args.insert("source".to_string(),    Value::String(source));
+        args.insert("recipient".to_string(), Value::String(recipient));
+        args.insert("amount".to_string(),    Value::Number(Number::from_f64(amount).unwrap()));
+        args.insert("signature".to_string(), Value::String(signature));
+        self.send_command(CommandPayload{
+            command: "create_transaction".to_string(),
             args:    Some(args)
         })
     }
