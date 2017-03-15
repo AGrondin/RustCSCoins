@@ -20,7 +20,7 @@ use serde_json::Value;
 
 /// ## Command object
 ///
-/// Generic struct foe sending commands.
+/// Generic struct for sending commands.
 ///
 /// References: https://github.com/csgames/cscoins#command-object
 ///             https://docs.serde.rs/serde_json/struct.Map.html
@@ -55,7 +55,9 @@ pub struct CurrentChallenge {
 //Sub-component of the CurrentChallenge struct
 #[derive(Deserialize)]
 pub struct CurrentChallengeParams {
-    pub nb_elements: u64
+    pub grid_size:   Option<u64>,
+    pub nb_blockers: Option<u64>,
+    pub nb_elements: Option<u64>
 }
 
 

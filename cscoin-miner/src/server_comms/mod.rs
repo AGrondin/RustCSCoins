@@ -94,7 +94,7 @@ impl CSCoinClient {
         //Receive and extract response
         let response: Message = try!(receiver.recv_message() //get response
             .map_err(CSCoinClientError::WebSockErr));
-        let mut response_cursor   = Cursor::new(Vec::new()); //create essentially what is a buffer
+        let mut response_cursor = Cursor::new(Vec::new());   //create essentially what is a buffer
         try!(response.write_payload(&mut response_cursor)    //write payload to buffer
             .map_err(CSCoinClientError::WebSockErr));
         //Turn buffer data to String
