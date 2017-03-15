@@ -26,7 +26,7 @@ use serde_json::Value;
 ///             https://docs.serde.rs/serde_json/struct.Map.html
 ///             https://docs.serde.rs/serde_json/value/enum.Value.html
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct CommandObject {
     pub command: String,
     pub args:    Map<String, Value>,
@@ -42,7 +42,7 @@ pub struct CommandObject {
 ///
 /// References: https://github.com/csgames/cscoins#get-current-challenge
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct CurrentChallenge {
     pub time_left:          u64,
     pub challenge_id:       u64,
@@ -53,7 +53,7 @@ pub struct CurrentChallenge {
 }
 
 //Sub-component of the CurrentChallenge struct
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct CurrentChallengeParams {
     pub grid_size:   Option<u64>,
     pub nb_blockers: Option<u64>,
@@ -71,7 +71,7 @@ pub struct CurrentChallengeParams {
 ///
 /// References: https://github.com/csgames/cscoins#get-current-challenge
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct ChallengeSolution {
     pub nonce:         String,
     pub solution_hash: String
@@ -90,7 +90,7 @@ pub struct ChallengeSolution {
 ///
 /// References: https://github.com/csgames/cscoins#register-a-new-wallet
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct RegisterWallet {
     pub error: Option<String>    //Unclear if empty/missing when no error?
 }
@@ -107,14 +107,14 @@ pub struct RegisterWallet {
 ///
 /// References: https://github.com/csgames/cscoins#get-transactions
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Transactions {
     pub error:        Option<String>,  //Unclear if empty/missing when no error?
     pub transactions: Vec<Transaction>
 }
 
 //Element of the transactions array
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Transaction {
     pub id:        u64,
     pub source:    String,
@@ -136,7 +136,7 @@ pub struct Transaction {
 ///
 /// References: https://github.com/csgames/cscoins#create-a-new-transaction-send-coins
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct CreateTransaction {
     pub error: Option<String>,  //Unclear if empty/missing when no error?
     pub id:    u64
@@ -154,7 +154,7 @@ pub struct CreateTransaction {
 ///
 /// References: https://github.com/csgames/cscoins#submit-a-problem-solution
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct SubmitProblem {
     pub error: Option<String>,  //Unclear if empty/missing when no error?
 }
@@ -170,7 +170,7 @@ pub struct SubmitProblem {
 ///
 /// References: https://github.com/csgames/cscoins#get-central-authority-server-information
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct CAServerInfo {
     minutes_per_challenge:  u64,
     coins_per_challenge:    u64,
