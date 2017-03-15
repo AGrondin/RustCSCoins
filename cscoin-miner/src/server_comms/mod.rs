@@ -16,7 +16,7 @@ use std::io::Cursor;
 //      WebSockClient type args.
 use websocket::{Client as WebSockClient, Message, Receiver, Sender};
 use websocket::client::request::Url;
-use websocket::dataframe::DataFrame as WSCDataFrame; //See note abve
+use websocket::dataframe::DataFrame as WSCDataFrame; //See note above
 use websocket::receiver::Receiver as WSCReceiver; //See note above
 use websocket::sender::Sender as WSCSender; //See note above
 use websocket::stream::WebSocketStream;
@@ -25,8 +25,10 @@ use serde;
 use serde_json;
 use serde_json::map::Map;
 use serde_json::Value;
+use serde_json::Number;
 
 use server_comms::error::CSCoinClientError;
+use server_comms::cmd_response::CurrentChallenge;
 
 pub mod cmd_response;
 pub mod error;
@@ -124,6 +126,22 @@ impl CSCoinClient {
             .map_err(CSCoinClientError::UTF8Err));
 
         serde_json::from_str(&response_str[..]).map_err(CSCoinClientError::JSONErr)
+    }
+
+
+    /// ## Get Current Challenge
+    ///
+    /// Fetch the current problem set from the Central Authority
+    ///
+    /// Arguments: none
+    /// Response:  CurrentChallenge
+    ///
+    /// References: https://github.com/csgames/cscoins#get-current-challenge
+    pub fn get_current_challenge(&mut self) -> Result<CurrentChallenge, CSCoinClientError> {
+        self.send_command(CommandPayload{
+            command: "get_current_challenge".to_string(),
+            args:    Option::None
+        })
     }
 
 }
