@@ -21,6 +21,7 @@ use websocket::receiver::Receiver as WSCReceiver; //See note above
 use websocket::sender::Sender as WSCSender; //See note above
 use websocket::stream::WebSocketStream;
 use websocket::ws::dataframe::DataFrame;
+use openssl::ssl::{SslContext, SslMethod};
 use serde;
 use serde_json;
 use serde_json::map::Map;
@@ -69,7 +70,7 @@ pub struct CSCoinClient {
 
 impl CSCoinClient {
 
-    //Use this to connect to the CA Server
+    //Use this to connect to the CA Server without ssl for teesting
     pub fn connect(server_uri: &'static str) -> Result<CSCoinClient, CSCoinClientError>{
 
         // safe to unwrap, if this crashes then we have a
@@ -86,6 +87,27 @@ impl CSCoinClient {
             client: response.begin()
         })
     }
+
+    //Use this to connect to the CA Server with ssl
+    pub fn connect_ssl(server_uri: &'static str) -> Result<CSCoinClient, CSCoinClientError>{
+
+        // safe to unwrap, if this crashes then we have a
+        // typo in our constant.
+        let url         = Url::parse(server_uri).unwrap();                           // Parse url
+        let ssl_context = try!(SslContext::new(SslMethod::Sslv23)
+            .map_err(CSCoinClientError::SSLErr));
+        let request     = try!(WebSockClient::connect_ssl_context(url, &ssl_context) // Connect to server with ssl
+            .map_err(CSCoinClientError::WebSockErr));
+        let response    = try!(request.send()                                        // Send request
+            .map_err(CSCoinClientError::WebSockErr));
+        try!(response.validate()                                                  // Validate response
+            .map_err(CSCoinClientError::WebSockErr));
+
+        Ok(CSCoinClient {
+            client: response.begin()
+        })
+    }
+
 
     //Implementation of close command
     //Reference: https://github.com/csgames/cscoins#close-connection
