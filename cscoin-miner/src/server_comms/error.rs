@@ -8,6 +8,8 @@
 
 use std::io::Error as IOError;
 use std::string::FromUtf8Error;
+
+use openssl::ssl::error::SslError;
 use serde_json::error::Error as JSONError;
 use websocket::result::WebSocketError;
 
@@ -15,6 +17,7 @@ use websocket::result::WebSocketError;
 pub enum CSCoinClientError {
     IOErr(IOError),
     JSONErr(JSONError),
+    SSLErr(SslError),
     WebSockErr(WebSocketError),
     UTF8Err(FromUtf8Error)
 }
