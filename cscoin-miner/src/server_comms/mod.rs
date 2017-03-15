@@ -32,7 +32,9 @@ use server_comms::cmd_response::{CurrentChallenge,
                                  ChallengeSolution,
                                  RegisterWallet,
                                  Transactions,
-                                 CreateTransaction};
+                                 CreateTransaction,
+                                 SubmitProblem,
+                                 CAServerInfo};
 
 pub mod cmd_response;
 pub mod error;
@@ -226,7 +228,7 @@ impl CSCoinClient {
     /// Response:  CreateTransaction
     ///
     /// References: https://github.com/csgames/cscoins#create-a-new-transaction-send-coins
-    pub fn create_transaction(&mut self, source: String, recipient: String, amount: f64, signature: String)  -> Result<CreateTransaction, CSCoinClientError> {
+    pub fn create_transaction(&mut self, source: String, recipient: String, amount: f64, signature: String) -> Result<CreateTransaction, CSCoinClientError> {
         let mut args: Map<String, Value> = Map::new();
         args.insert("source".to_string(),    Value::String(source));
         args.insert("recipient".to_string(), Value::String(recipient));
@@ -235,6 +237,43 @@ impl CSCoinClient {
         self.send_command(CommandPayload{
             command: "create_transaction".to_string(),
             args:    Some(args)
+        })
+    }
+
+
+    /// ## Submit a problem solution
+    ///
+    /// Submit a solution for the current challenge, awarding CSCoins to the miner if the solution is valid.
+    ///
+    /// Command:   "submission"
+    /// Arguments: wallet_id: String
+    ///            nonce:     String
+    /// Response:  SubmitProblem
+    ///
+    /// References: https://github.com/csgames/cscoins#submit-a-problem-solution
+    pub fn submission(&mut self, wallet_id: String, nonce: String) -> Result<SubmitProblem, CSCoinClientError> {
+        let mut args: Map<String, Value> = Map::new();
+        args.insert("wallet_id".to_string(), Value::String(wallet_id));
+        args.insert("nonce".to_string(),     Value::String(nonce));
+        self.send_command(CommandPayload{
+            command: "submission".to_string(),
+            args:    Some(args)
+        })
+    }
+
+    /// ## Get Central Authority Server Information
+    ///
+    /// Fetch the current information of the Central Authority server
+    ///
+    /// Command:   "ca_server_info"
+    /// Arguments: none
+    /// Response:  CAServerInfo
+    ///
+    /// References: https://github.com/csgames/cscoins#get-central-authority-server-information
+    pub fn ca_server_info(&mut self) -> Result<CAServerInfo, CSCoinClientError> {
+        self.send_command(CommandPayload{
+            command: "submission".to_string(),
+            args:    None
         })
     }
 
