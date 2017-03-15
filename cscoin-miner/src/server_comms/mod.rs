@@ -6,6 +6,7 @@
 //!
 //! Reference: https://github.com/csgames/cscoins#communication-with-the-central-authority
 
+use std::mem;
 use std::io::Cursor;
 
 //NOTE: Some imports are renamed with a WSC prefix because
@@ -76,6 +77,27 @@ impl CSCoinClient {
         Ok(CSCoinClient {
             client: response.begin()
         })
+    }
+
+    //Implementation of close command
+    //Reference: https://github.com/csgames/cscoins#close-connection
+    pub fn disconnect(&mut self) -> Result<(), CSCoinClientError> {
+
+        //JSONify payload
+        let payload = try!(serde_json::to_string(&CommandPayload{
+            command: "close".to_string(),
+            args:    Option::None
+        }).map_err(CSCoinClientError::JSONErr));
+
+        //Send Payload
+        try!(self.client.send_message(&Message::text(payload))
+            .map_err(CSCoinClientError::WebSockErr));
+
+        //Close client side connection
+        try!(self.client.shutdown().map_err(CSCoinClientError::IOErr));
+
+        drop(self);
+        return Ok(())
     }
 
     //Helper command
