@@ -44,7 +44,7 @@ pub mod error;
 // Consts
 //---------------------------------------------------------
 
-pub static server_uri: &'static str = "wss://cscoins.2017.csgames.org:8989/client";
+pub static DEFAULT_URI: &'static str = "wss://cscoins.2017.csgames.org:8989/client";
 
 
 //---------------------------------------------------------
@@ -70,7 +70,7 @@ pub struct CSCoinClient {
 impl CSCoinClient {
 
     //Use this to connect to the CA Server
-    pub fn connect() -> Result<CSCoinClient, CSCoinClientError>{
+    pub fn connect(server_uri: &'static str) -> Result<CSCoinClient, CSCoinClientError>{
 
         // safe to unwrap, if this crashes then we have a
         // typo in our constant.
