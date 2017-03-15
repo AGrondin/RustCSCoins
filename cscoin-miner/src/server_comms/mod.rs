@@ -28,7 +28,8 @@ use serde_json::Value;
 use serde_json::Number;
 
 use server_comms::error::CSCoinClientError;
-use server_comms::cmd_response::CurrentChallenge;
+use server_comms::cmd_response::{CurrentChallenge,
+                                 ChallengeSolution};
 
 pub mod cmd_response;
 pub mod error;
@@ -141,6 +142,25 @@ impl CSCoinClient {
         self.send_command(CommandPayload{
             command: "get_current_challenge".to_string(),
             args:    Option::None
+        })
+    }
+
+
+    /// ## Get Challenge Solution
+    ///
+    /// Fetch the solution of a challenge
+    ///
+    /// Command:   "get_challenge_solution"
+    /// Arguments: challenge_id: u64
+    /// Response:  ChallengeSolution
+    ///
+    /// References: https://github.com/csgames/cscoins#get-current-challenge
+    pub fn get_challenge_solution(&mut self, challenge_id: u64) -> Result<ChallengeSolution, CSCoinClientError> {
+        let mut args: Map<String, Value> = Map::new();
+        args.insert("challenge_id".to_string(), Value::Number(Number::from(challenge_id)));
+        self.send_command(CommandPayload{
+            command: "get_challenge_solution".to_string(),
+            args:    Some(args)
         })
     }
 
