@@ -287,15 +287,37 @@ impl CSCoinClient {
 
 
 #[test]
-fn test() {
+fn test_connect_disconnect() {
     let mut client = match CSCoinClient::connect(TEST_URI){
         Ok(client) => client,
-        Err(err)   => {
-            panic!("{:?}", err);
-        }
+        Err(err)   => panic!("Error on connect: {:?}", err)
     };
-    println!("{:?}", client.ca_server_info().unwrap());
-    client.disconnect().unwrap();
+    match client.disconnect() {
+        Ok(())   => (),
+        Err(err) => panic!("Error on disconnect: {:?}", err)
+    }
 }
+
+
+#[test]
+fn test_get_current_challenge() {
+
+    let mut client = match CSCoinClient::connect(TEST_URI){
+        Ok(client) => client,
+        Err(err)   => panic!("Error on connect: {:?}", err)
+    };
+
+    let challenge: CurrentChallenge = match client.get_current_challenge() {
+        Ok(challenge) => challenge,
+        Err(err)      => panic!("Error on get_current_challenge(): {:?}", err)
+    };
+
+    match client.disconnect() {
+        Ok(())   => (),
+        Err(err) => panic!("Error on disconnect: {:?}", err)
+    }
+
+}
+
 
 
