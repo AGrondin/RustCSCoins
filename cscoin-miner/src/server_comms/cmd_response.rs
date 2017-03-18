@@ -73,8 +73,10 @@ pub struct CurrentChallengeParams {
 
 #[derive(Deserialize, Debug)]
 pub struct ChallengeSolution {
-    pub nonce:         String,
-    pub solution_hash: String
+    pub challenge_id:   u64,
+    pub challenge_name: String,
+    pub nonce:          u64,
+    pub hash:           String
 }
 
 

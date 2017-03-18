@@ -320,4 +320,23 @@ fn test_get_current_challenge() {
 }
 
 
+#[test]
+fn test_get_challenge_solution() {
+
+    let mut client = match CSCoinClient::connect(TEST_URI){
+        Ok(client) => client,
+        Err(err)   => panic!("Error on connect: {:?}", err)
+    };
+
+    let solution: ChallengeSolution = match client.get_challenge_solution(1) {
+        Ok(solution) => solution,
+        Err(err)     => panic!("Error on get_challenge_solution(1): {:?}", err)
+    };
+
+    match client.disconnect() {
+        Ok(())   => (),
+        Err(err) => panic!("Error on disconnect: {:?}", err)
+    }
+
+}
 
