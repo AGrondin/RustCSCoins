@@ -46,6 +46,7 @@ pub mod error;
 //---------------------------------------------------------
 
 pub static DEFAULT_URI: &'static str = "wss://cscoins.2017.csgames.org:8989/client";
+pub static TEST_URI:    &'static str = "ws://127.0.0.1:8989/client";
 
 
 //---------------------------------------------------------
@@ -70,7 +71,7 @@ pub struct CSCoinClient {
 
 impl CSCoinClient {
 
-    //Use this to connect to the CA Server without ssl for teesting
+    //Use this to connect to the CA Server
     pub fn connect(server_uri: &'static str) -> Result<CSCoinClient, CSCoinClientError>{
 
         // safe to unwrap, if this crashes then we have a
@@ -87,27 +88,6 @@ impl CSCoinClient {
             client: response.begin()
         })
     }
-
-    //Use this to connect to the CA Server with ssl
-    pub fn connect_ssl(server_uri: &'static str) -> Result<CSCoinClient, CSCoinClientError>{
-
-        // safe to unwrap, if this crashes then we have a
-        // typo in our constant.
-        let url         = Url::parse(server_uri).unwrap();                           // Parse url
-        let ssl_context = try!(SslContext::new(SslMethod::Sslv23)
-            .map_err(CSCoinClientError::SSLErr));
-        let request     = try!(WebSockClient::connect_ssl_context(url, &ssl_context) // Connect to server with ssl
-            .map_err(CSCoinClientError::WebSockErr));
-        let response    = try!(request.send()                                        // Send request
-            .map_err(CSCoinClientError::WebSockErr));
-        try!(response.validate()                                                  // Validate response
-            .map_err(CSCoinClientError::WebSockErr));
-
-        Ok(CSCoinClient {
-            client: response.begin()
-        })
-    }
-
 
     //Implementation of close command
     //Reference: https://github.com/csgames/cscoins#close-connection
@@ -146,12 +126,15 @@ impl CSCoinClient {
         //Receive and extract response
         let response: Message = try!(receiver.recv_message() //get response
             .map_err(CSCoinClientError::WebSockErr));
+        println!("{:?}", response);
         let mut response_cursor = Cursor::new(Vec::new());   //create essentially what is a buffer
         try!(response.write_payload(&mut response_cursor)    //write payload to buffer
             .map_err(CSCoinClientError::WebSockErr));
         //Turn buffer data to String
         let response_str = try!(String::from_utf8(response_cursor.into_inner())
             .map_err(CSCoinClientError::UTF8Err));
+
+        println!("{}", response_str);
 
         serde_json::from_str(&response_str[..]).map_err(CSCoinClientError::JSONErr)
     }
@@ -294,11 +277,25 @@ impl CSCoinClient {
     /// References: https://github.com/csgames/cscoins#get-central-authority-server-information
     pub fn ca_server_info(&mut self) -> Result<CAServerInfo, CSCoinClientError> {
         self.send_command(CommandPayload{
-            command: "submission".to_string(),
+            command: "ca_server_info".to_string(),
             args:    None
         })
     }
 
+}
+
+
+
+#[test]
+fn test() {
+    let mut client = match CSCoinClient::connect(TEST_URI){
+        Ok(client) => client,
+        Err(err)   => {
+            panic!("{:?}", err);
+        }
+    };
+    println!("{:?}", client.ca_server_info().unwrap());
+    client.disconnect().unwrap();
 }
 
 
