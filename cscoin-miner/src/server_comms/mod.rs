@@ -404,6 +404,11 @@ fn create_rsa_keys() {
 }
 
 #[test]
+fn load_rsa_keys() {
+    CSCoinClient::load_rsa_keys();
+}
+
+#[test]
 fn test_register_wallet() {
 
 }
