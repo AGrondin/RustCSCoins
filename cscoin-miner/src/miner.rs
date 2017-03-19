@@ -3,6 +3,8 @@ extern crate crypto;
 extern crate rand;
 use mersenne_twister::MersenneTwister;
 use rand::{Rng, SeedableRng};
+use std::mem;
+use std::rand::{task_rng, Rng};
 use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 
@@ -37,7 +39,7 @@ impl miner{
 
     fn sortedListsChal<'a>(&'a mut self, &mut numbers: Vec<u64>, order: F) -> String where F: FnMut(&T, &T) -> Ordering
     {
-        //numbers.sort_by(order);
+        numbers.sort_by(order);
 
         let results= numbers.iter().map(|x| x.ToString()).collect().join();
 
@@ -45,15 +47,40 @@ impl miner{
 
     }
 
-    fn findNonce(&mut self, prefix:&[u8], target:&[u8]) -> [u8]{
+    fn findNonce(&mut self, lastSolution:&[u8], target:&[u8], numInts: u32) -> [u8]{
+
+        let mut new_seed:[u8;32]=[0;32];
 
         //Start loop
 
-        //Reseed rng
+        //Reseed rng (use thread_rng?)
+
 
         //Generate 8 byte Nonce using rng
 
+        let nonce = self.rng.next_u64().toString();
+
+
+        self.hasher.reset();
+
+        self.hasher.input_str(format!("{}{}", lastSolution.toString(), nonce));
+
+        self.hasher.result(new_seed);
+
+
         //Concatenate prefix and Nonce using push_into mut str (maybe as [u8], see what's faster)
+
+        unsafe {
+            let mut seed:[u8;8]=[0;8];
+
+            seed.copy_from_slice(&new_seed[0..8]);
+
+            let mers:u64=mem::transmute(seed);
+        }
+
+        let numbers=self.getMersOutput(mers, numInts);
+
+
 
         //Pass mutated string as input for hasher.input_str
 
