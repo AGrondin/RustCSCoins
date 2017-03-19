@@ -1,4 +1,5 @@
 
+extern crate crypto;
 extern crate openssl;
 extern crate serde;
 #[macro_use]
@@ -11,5 +12,7 @@ extern crate websocket;
 mod server_comms;
 
 fn main() {
+    server_comms::CSCoinClient::create_rsa_keys();
+    server_comms::CSCoinClient::load_rsa_keys();
     println!("Hello, world!");
 }

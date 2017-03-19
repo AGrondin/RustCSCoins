@@ -12,6 +12,15 @@ use std::io::{Cursor, Read, Write};
 use std::mem;
 use std::process::Command;
 
+use crypto::digest::Digest;
+use crypto::sha2::Sha256;
+use openssl::crypto::pkey::{EncryptionPadding, PKey};
+use openssl::ssl::{SslContext, SslMethod};
+use serde;
+use serde_json;
+use serde_json::map::Map;
+use serde_json::Value;
+use serde_json::Number;
 //NOTE: Some imports are renamed with a WSC prefix because
 //      yes... there are different implementations of the
 //      same type and yes we are using both... The WSC
@@ -24,13 +33,6 @@ use websocket::receiver::Receiver as WSCReceiver; //See note above
 use websocket::sender::Sender as WSCSender; //See note above
 use websocket::stream::WebSocketStream;
 use websocket::ws::dataframe::DataFrame;
-use openssl::crypto::pkey::PKey;
-use openssl::ssl::{SslContext, SslMethod};
-use serde;
-use serde_json;
-use serde_json::map::Map;
-use serde_json::Value;
-use serde_json::Number;
 
 use server_comms::error::CSCoinClientError;
 use server_comms::cmd_response::{CurrentChallenge,
@@ -243,13 +245,28 @@ impl CSCoinClient {
     /// Response:  RegisterWallet
     ///
     /// References: https://github.com/csgames/cscoins#register-a-new-wallet
-    pub fn register_wallet(&mut self, name: String, key: String, signature: String) -> Result<RegisterWallet, CSCoinClientError> {
+    pub fn register_wallet(&mut self, name: &'static str) -> Result<RegisterWallet, CSCoinClientError> {
+
+        //TODO: ERROR CHECKING
+        //TODO: SAVE WALLET ID
+
+        //Get key in PEM format
+        let mut key_cursor = Cursor::new(Vec::new());
+        self.keys.write_pub_pem(&mut key_cursor).unwrap();
+        let key = String::from_utf8(key_cursor.into_inner()).unwrap();
+
+        //Get signature
+        let mut hasher = Sha256::new();
+        hasher.input(&self.keys.save_pub().as_slice());
+        let encrypted_hash = self.keys.private_encrypt_with_padding(hasher.result_str().as_bytes(), EncryptionPadding::PKCS1v15);
+        //let signature = String::from_utf8(encrypted_hash).unwrap();
+
         let mut args: Map<String, Value> = Map::new();
-        args.insert("name".to_string(),      Value::String(name));
+        args.insert("name".to_string(),      Value::String(name.to_string()));
         args.insert("key".to_string(),       Value::String(key));
-        args.insert("signature".to_string(), Value::String(signature));
+        args.insert("signature".to_string(), Value::String(hasher.result_str()));
         self.send_command(CommandPayload{
-            command: "get_challenge_solution".to_string(),
+            command: "register_wallet".to_string(),
             args:    Some(args)
         })
     }
@@ -406,6 +423,21 @@ fn test_get_challenge_solution() {
 
 #[test]
 fn test_register_wallet() {
+
+    let mut client = match CSCoinClient::connect(TEST_URI){
+        Ok(client) => client,
+        Err(err)   => panic!("Error on connect: {:?}", err)
+    };
+
+    let wallet: RegisterWallet = match client.register_wallet("Concordia University") {
+        Ok(wallet) => wallet,
+        Err(err)   => panic!("Error on get_challenge_solution(1): {:?}", err)
+    };
+
+    match client.disconnect() {
+        Ok(())   => (),
+        Err(err) => panic!("Error on disconnect: {:?}", err)
+    }
 
 }
 

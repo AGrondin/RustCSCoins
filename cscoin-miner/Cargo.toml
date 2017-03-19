@@ -5,6 +5,7 @@ authors = ["Alexis Grondin <agrondin1@hotmail.com>", "Alex Frappier Lachapelle <
 
 [dependencies]
 openssl      = "0.7.6"
+rust-crypto  = "^0.2"
 serde        = "0.9"
 serde_derive = "0.9"
 serde_json   = "0.9"
