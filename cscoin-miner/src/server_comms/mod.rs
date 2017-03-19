@@ -342,6 +342,15 @@ impl CSCoinClient {
 }
 
 
+#[test]
+fn create_rsa_keys() {
+    CSCoinClient::create_rsa_keys();
+}
+
+#[test]
+fn load_rsa_keys() {
+    CSCoinClient::load_rsa_keys();
+}
 
 #[test]
 fn test_connect_disconnect() {
@@ -354,7 +363,6 @@ fn test_connect_disconnect() {
         Err(err) => panic!("Error on disconnect: {:?}", err)
     }
 }
-
 
 #[test]
 fn test_get_current_challenge() {
@@ -376,7 +384,6 @@ fn test_get_current_challenge() {
 
 }
 
-
 #[test]
 fn test_get_challenge_solution() {
 
@@ -397,40 +404,25 @@ fn test_get_challenge_solution() {
 
 }
 
-
-#[test]
-fn create_rsa_keys() {
-    CSCoinClient::create_rsa_keys();
-}
-
-#[test]
-fn load_rsa_keys() {
-    CSCoinClient::load_rsa_keys();
-}
-
 #[test]
 fn test_register_wallet() {
 
 }
-
 
 #[test]
 fn test_get_transactions() {
 
 }
 
-
 #[test]
 fn test_create_transaction() {
 
 }
 
-
 #[test]
 fn test_submission() {
 
 }
-
 
 #[test]
 fn test_ca_server_info() {
