@@ -6,8 +6,11 @@
 //!
 //! Reference: https://github.com/csgames/cscoins#communication-with-the-central-authority
 
+use std::fs;
+use std::fs::File;
+use std::io::{Cursor, Read, Write};
 use std::mem;
-use std::io::Cursor;
+use std::process::Command;
 
 //NOTE: Some imports are renamed with a WSC prefix because
 //      yes... there are different implementations of the
@@ -21,6 +24,7 @@ use websocket::receiver::Receiver as WSCReceiver; //See note above
 use websocket::sender::Sender as WSCSender; //See note above
 use websocket::stream::WebSocketStream;
 use websocket::ws::dataframe::DataFrame;
+use openssl::crypto::pkey::PKey;
 use openssl::ssl::{SslContext, SslMethod};
 use serde;
 use serde_json;
@@ -66,13 +70,18 @@ pub struct CommandPayload {
 //Holds the client state
 
 pub struct CSCoinClient {
-    client: WebSockClient<WSCDataFrame, WSCSender<WebSocketStream>, WSCReceiver<WebSocketStream>>
+    client: WebSockClient<WSCDataFrame, WSCSender<WebSocketStream>, WSCReceiver<WebSocketStream>>,
+    keys:   PKey
 }
 
 impl CSCoinClient {
 
     //Use this to connect to the CA Server
     pub fn connect(server_uri: &'static str) -> Result<CSCoinClient, CSCoinClientError>{
+
+        //Load keys
+        CSCoinClient::create_rsa_keys();
+        let pkey = CSCoinClient::load_rsa_keys();
 
         // safe to unwrap, if this crashes then we have a
         // typo in our constant.
@@ -85,7 +94,8 @@ impl CSCoinClient {
             .map_err(CSCoinClientError::WebSockErr));
 
         Ok(CSCoinClient {
-            client: response.begin()
+            client: response.begin(),
+            keys: pkey
         })
     }
 
@@ -117,6 +127,8 @@ impl CSCoinClient {
         let payload = try!(serde_json::to_string(&command_payload)
             .map_err(CSCoinClientError::JSONErr));
 
+        println!("PAYLOAD: {}", payload);
+
         //Send Payload
         try!(self.client.send_message(&Message::text(payload))
             .map_err(CSCoinClientError::WebSockErr));
@@ -137,6 +149,51 @@ impl CSCoinClient {
         println!("{}", response_str);
 
         serde_json::from_str(&response_str[..]).map_err(CSCoinClientError::JSONErr)
+    }
+
+
+    //Utils
+
+    pub fn create_rsa_keys() {
+
+        //TODO: Error checking
+
+        let mut pkey = PKey::new();
+        pkey.gen(1024);
+
+        //Write private key if non existant
+        let priv_meta = fs::metadata("private_key.der");
+        if priv_meta.is_err() || !priv_meta.unwrap().is_file() {
+            let mut priv_file = File::create("private_key.der").unwrap();
+            priv_file.write_all(pkey.save_priv().as_slice()).unwrap();
+        }
+
+        //Write public key if non existant
+        let pub_meta = fs::metadata("public_key.der");
+        if pub_meta.is_err() || !pub_meta.unwrap().is_file() {
+            let mut priv_file = File::create("public_key.der").unwrap();
+            priv_file.write_all(pkey.save_pub().as_slice()).unwrap();
+        }
+
+    }
+
+    pub fn load_rsa_keys() -> PKey {
+
+        //TODO: Error checking
+
+        let mut pkey               = PKey::new();
+        let mut priv_file          = File::open("private_key.der").unwrap();
+        let mut pub_file           = File::open("public_key.der").unwrap();
+        let mut priv_data: Vec<u8> = Vec::new();
+        let mut pub_data:  Vec<u8> = Vec::new();
+
+        priv_file.read_to_end(&mut priv_data).unwrap();
+        pub_file.read_to_end(&mut pub_data).unwrap();
+
+        pkey.load_priv(&priv_data);
+        pkey.load_pub(&pub_data);
+
+        pkey
     }
 
 
@@ -278,7 +335,7 @@ impl CSCoinClient {
     pub fn ca_server_info(&mut self) -> Result<CAServerInfo, CSCoinClientError> {
         self.send_command(CommandPayload{
             command: "ca_server_info".to_string(),
-            args:    None
+            args:    Option::None
         })
     }
 
@@ -340,3 +397,52 @@ fn test_get_challenge_solution() {
 
 }
 
+
+#[test]
+fn create_rsa_keys() {
+    CSCoinClient::create_rsa_keys();
+}
+
+#[test]
+fn test_register_wallet() {
+
+}
+
+
+#[test]
+fn test_get_transactions() {
+
+}
+
+
+#[test]
+fn test_create_transaction() {
+
+}
+
+
+#[test]
+fn test_submission() {
+
+}
+
+
+#[test]
+fn test_ca_server_info() {
+
+    let mut client = match CSCoinClient::connect(TEST_URI){
+        Ok(client) => client,
+        Err(err)   => panic!("Error on connect: {:?}", err)
+    };
+
+    let challenge: CAServerInfo = match client.ca_server_info() {
+        Ok(challenge) => challenge,
+        Err(err)      => panic!("Error on ca_server_info(): {:?}", err)
+    };
+
+    match client.disconnect() {
+        Ok(())   => (),
+        Err(err) => panic!("Error on disconnect: {:?}", err)
+    }
+
+}

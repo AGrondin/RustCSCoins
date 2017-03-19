@@ -174,8 +174,8 @@ pub struct SubmitProblem {
 
 #[derive(Deserialize, Debug)]
 pub struct CAServerInfo {
-    minutes_per_challenge:  u64,
-    coins_per_challenge:    u64,
+    minutes_per_challenge:  f64,
+    coins_per_challenge:    f64,
     min_transaction_amount: f64,
     ca_public_key:          String
 }
