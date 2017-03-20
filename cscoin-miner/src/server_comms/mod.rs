@@ -431,7 +431,7 @@ fn test_register_wallet() {
 
     let wallet: RegisterWallet = match client.register_wallet("Concordia University") {
         Ok(wallet) => wallet,
-        Err(err)   => panic!("Error on get_challenge_solution(1): {:?}", err)
+        Err(err)   => panic!("Error on register_wallet(\"Concordia University\"): {:?}", err)
     };
 
     match client.disconnect() {
@@ -444,16 +444,31 @@ fn test_register_wallet() {
 #[test]
 fn test_get_transactions() {
 
+    let mut client = match CSCoinClient::connect(TEST_URI){
+        Ok(client) => client,
+        Err(err)   => panic!("Error on connect: {:?}", err)
+    };
+
+    let wallet: Transactions = match client.get_transactions(0, 100) {
+        Ok(wallet) => wallet,
+        Err(err)   => panic!("Error on get_transactions(0, 100): {:?}", err)
+    };
+
+    match client.disconnect() {
+        Ok(())   => (),
+        Err(err) => panic!("Error on disconnect: {:?}", err)
+    }
+
 }
 
 #[test]
 fn test_create_transaction() {
-
+    //TODO: once we get other clients and some coins/submissions
 }
 
 #[test]
 fn test_submission() {
-
+    //TODO: once we get other clients and some coins/submissions
 }
 
 #[test]
