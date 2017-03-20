@@ -82,7 +82,7 @@ pub struct CSCoinClient {
 impl CSCoinClient {
 
     //Use this to connect to the CA Server
-    pub fn connect(server_uri: &'static str) -> Result<CSCoinClient, CSCoinClientError>{
+    pub fn connect(server_uri: &'static str) -> Result<CSCoinClient, CSCoinClientError> {
 
         //Load keys
         CSCoinClient::create_rsa_keys();
