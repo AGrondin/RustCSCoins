@@ -16,6 +16,7 @@ use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 use openssl::crypto::pkey::{EncryptionPadding, PKey};
 use openssl::ssl::{SslContext, SslMethod};
+use rustc_serialize::hex::ToHex;
 use serde;
 use serde_json;
 use serde_json::map::Map;
@@ -51,9 +52,10 @@ pub mod error;
 // Consts
 //---------------------------------------------------------
 
-pub static DEFAULT_URI: &'static str = "wss://cscoins.2017.csgames.org:8989/client";
-pub static TEST_URI:    &'static str = "ws://127.0.0.1:8989/client";
-
+pub static DEFAULT_URI:   &'static str = "wss://cscoins.2017.csgames.org:8989/client";
+pub static TEST_URI:      &'static str = "ws://127.0.0.1:8989/client";
+pub static PRIV_PEM_FILE: &'static str = "private_key.pem";
+pub static PUB_PEM_FILE:  &'static str = "public_key.pem";
 
 //---------------------------------------------------------
 // Payload Struct
@@ -164,17 +166,17 @@ impl CSCoinClient {
         pkey.gen(1024);
 
         //Write private key if non existant
-        let priv_meta = fs::metadata("private_key.der");
+        let priv_meta = fs::metadata(PRIV_PEM_FILE);
         if priv_meta.is_err() || !priv_meta.unwrap().is_file() {
-            let mut priv_file = File::create("private_key.der").unwrap();
-            priv_file.write_all(pkey.save_priv().as_slice()).unwrap();
+            let mut priv_file = File::create(PRIV_PEM_FILE).unwrap();
+            pkey.write_pem(&mut priv_file).unwrap();
         }
 
         //Write public key if non existant
-        let pub_meta = fs::metadata("public_key.der");
+        let pub_meta = fs::metadata(PUB_PEM_FILE);
         if pub_meta.is_err() || !pub_meta.unwrap().is_file() {
-            let mut priv_file = File::create("public_key.der").unwrap();
-            priv_file.write_all(pkey.save_pub().as_slice()).unwrap();
+            let mut pub_file = File::create(PUB_PEM_FILE).unwrap();
+            pkey.write_pub_pem(&mut pub_file).unwrap();
         }
 
     }
@@ -182,22 +184,10 @@ impl CSCoinClient {
     pub fn load_rsa_keys() -> PKey {
 
         //TODO: Error checking
-
-        let mut pkey               = PKey::new();
-        let mut priv_file          = File::open("private_key.der").unwrap();
-        let mut pub_file           = File::open("public_key.der").unwrap();
-        let mut priv_data: Vec<u8> = Vec::new();
-        let mut pub_data:  Vec<u8> = Vec::new();
-
-        priv_file.read_to_end(&mut priv_data).unwrap();
-        pub_file.read_to_end(&mut pub_data).unwrap();
-
-        pkey.load_priv(&priv_data);
-        pkey.load_pub(&pub_data);
-
+        let mut priv_file = File::open(PRIV_PEM_FILE).unwrap();
+        let mut pkey      = PKey::private_rsa_key_from_pem(&mut priv_file).unwrap();
         pkey
     }
-
 
     /// ## Get Current Challenge
     ///
@@ -257,15 +247,26 @@ impl CSCoinClient {
 
         //Get signature
         let mut hasher = Sha256::new();
-        hasher.input(&self.keys.save_pub().as_slice());
-        let encrypted_hash = self.keys.private_encrypt_with_padding(hasher.result_str().as_bytes(), EncryptionPadding::PKCS1v15);
-        //let signature = String::from_utf8(encrypted_hash).unwrap();
+        hasher.input(&self.keys.save_pub());
+        //panic!("{}", hasher.result_str());
+        let mut hash_result: [u8; 32] = [0; 32];
+        hasher.result(&mut hash_result);
+        //panic!("{:?}", hash_result);
+        let signature_bytes = self.keys.sign(&hash_result);
+        let mut signature = signature_bytes.as_slice().to_hex();
+        /*for byte in signature_bytes {
+            signature += &format!("{:x}", byte);
+        }*/
+
+        //let mut signature = "565491ecb42746965944ea6011c5e31533a6ae171054af44ccfd83a9c1a177f9bcb1bc96101261aac74943c6832c312a348bba332fc501ef21c712e0840da902fb56a44191fce2e20a3b412880178311cf45ba15118efede167024b5a44f2c3e06aa5872e31d306b3b427cb8b670c9a0b761598578a3cab1d647f1f35a318eb6";
+
+        //panic!("{}", signature);
 
         let mut args: Map<String, Value> = Map::new();
         args.insert("name".to_string(),      Value::String(name.to_string()));
         args.insert("key".to_string(),       Value::String(key));
-        args.insert("signature".to_string(), Value::String(hasher.result_str()));
-        self.send_command(CommandPayload{
+        args.insert("signature".to_string(), Value::String(signature));
+        self.send_command(CommandPayload {
             command: "register_wallet".to_string(),
             args:    Some(args)
         })

@@ -1,6 +1,7 @@
 
 extern crate crypto;
 extern crate openssl;
+extern crate rustc_serialize;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;

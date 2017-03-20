@@ -4,8 +4,9 @@ version = "0.1.0"
 authors = ["Alexis Grondin <agrondin1@hotmail.com>", "Alex Frappier Lachapelle <cyberunner23@protonmail.com>"]
 
 [dependencies]
-openssl      = "0.7.6"
+openssl      = "0.7.12"
 rust-crypto  = "^0.2"
+rustc-serialize = "0.3.23"
 serde        = "0.9"
 serde_derive = "0.9"
 serde_json   = "0.9"
