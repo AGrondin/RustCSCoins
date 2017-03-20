@@ -7,3 +7,4 @@ authors = ["Alexis Grondin <agrondin1@hotmail.com>"]
 mersenne_twister = "1.0.0"
 rand = "*"
 rust-crypto = "^0.2"
+byteorder = "1.0.0"

@@ -1,6 +1,7 @@
 extern crate mersenne_twister;
 extern crate crypto;
 extern crate rand;
+extern crate byteorder;
 use mersenne_twister::MersenneTwister;
 use rand::{Rng, SeedableRng};
 use std::mem;
