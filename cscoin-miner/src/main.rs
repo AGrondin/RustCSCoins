@@ -15,5 +15,6 @@ mod server_comms;
 fn main() {
     server_comms::CSCoinClient::create_rsa_keys();
     server_comms::CSCoinClient::load_rsa_keys();
+    println!("{0:.5}", 2.99999999);
     println!("Hello, world!");
 }

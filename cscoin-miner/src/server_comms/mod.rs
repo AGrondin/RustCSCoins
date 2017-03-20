@@ -74,8 +74,9 @@ pub struct CommandPayload {
 //Holds the client state
 
 pub struct CSCoinClient {
-    client: WebSockClient<WSCDataFrame, WSCSender<WebSocketStream>, WSCReceiver<WebSocketStream>>,
-    keys:   PKey
+    client:    WebSockClient<WSCDataFrame, WSCSender<WebSocketStream>, WSCReceiver<WebSocketStream>>,
+    keys:      PKey,
+    wallet_id: String
 }
 
 impl CSCoinClient {
@@ -97,9 +98,14 @@ impl CSCoinClient {
         try!(response.validate()                             // Validate response
             .map_err(CSCoinClientError::WebSockErr));
 
+        //Computer wallet id
+        let mut hasher = Sha256::new();
+        hasher.input(&pkey.save_pub());
+
         Ok(CSCoinClient {
-            client: response.begin(),
-            keys: pkey
+            client:    response.begin(),
+            keys:      pkey,
+            wallet_id: hasher.result_str()
         })
     }
 
@@ -307,9 +313,13 @@ impl CSCoinClient {
     /// Response:  CreateTransaction
     ///
     /// References: https://github.com/csgames/cscoins#create-a-new-transaction-send-coins
-    pub fn create_transaction(&mut self, source: String, recipient: String, amount: f64, signature: String) -> Result<CreateTransaction, CSCoinClientError> {
+    pub fn create_transaction(&mut self, recipient: String, amount: f64) -> Result<CreateTransaction, CSCoinClientError> {
+
+        let signature_data = format!("{},{},{:.5}", self.wallet_id.clone(), recipient, amount);
+        let signature      = self.compute_signature(signature_data.as_bytes());
+
         let mut args: Map<String, Value> = Map::new();
-        args.insert("source".to_string(),    Value::String(source));
+        args.insert("source".to_string(),    Value::String(self.wallet_id.clone()));
         args.insert("recipient".to_string(), Value::String(recipient));
         args.insert("amount".to_string(),    Value::Number(Number::from_f64(amount).unwrap()));
         args.insert("signature".to_string(), Value::String(signature));
@@ -327,13 +337,21 @@ impl CSCoinClient {
     /// Command:   "submission"
     /// Arguments: wallet_id: String
     ///            nonce:     String
+    ///            hash:      String
     /// Response:  SubmitProblem
     ///
     /// References: https://github.com/csgames/cscoins#submit-a-problem-solution
-    pub fn submission(&mut self, wallet_id: String, nonce: String) -> Result<SubmitProblem, CSCoinClientError> {
+    pub fn submission(&mut self, challenge_id: u64, nonce: String, hash: String) -> Result<SubmitProblem, CSCoinClientError> {
+
+        let signature_data = format!("{},{},{:.5}", challenge_id, nonce, hash);
+        let signature      = self.compute_signature(signature_data.as_bytes());
+
         let mut args: Map<String, Value> = Map::new();
-        args.insert("wallet_id".to_string(), Value::String(wallet_id));
-        args.insert("nonce".to_string(),     Value::String(nonce));
+        args.insert("challenge_id".to_string(), Value::Number(Number::from(challenge_id)));
+        args.insert("nonce".to_string(),        Value::String(nonce));
+        args.insert("hash".to_string(),         Value::String(hash));
+        args.insert("signature".to_string(),    Value::String(signature));
+        args.insert("wallet_id".to_string(),    Value::String(self.wallet_id.clone()));
         self.send_command(CommandPayload{
             command: "submission".to_string(),
             args:    Some(args)
