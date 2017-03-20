@@ -137,7 +137,7 @@ impl CSCoinClient {
         let payload = try!(serde_json::to_string(&command_payload)
             .map_err(CSCoinClientError::JSONErr));
 
-        println!("PAYLOAD: {}", payload);
+        println!("Sending command: {}", command_payload.command);
 
         //Send Payload
         try!(self.client.send_message(&Message::text(payload))
@@ -148,15 +148,12 @@ impl CSCoinClient {
         //Receive and extract response
         let response: Message = try!(receiver.recv_message() //get response
             .map_err(CSCoinClientError::WebSockErr));
-        println!("{:?}", response);
         let mut response_cursor = Cursor::new(Vec::new());   //create essentially what is a buffer
         try!(response.write_payload(&mut response_cursor)    //write payload to buffer
             .map_err(CSCoinClientError::WebSockErr));
         //Turn buffer data to String
         let response_str = try!(String::from_utf8(response_cursor.into_inner())
             .map_err(CSCoinClientError::UTF8Err));
-
-        println!("{}", response_str);
 
         serde_json::from_str(&response_str[..]).map_err(CSCoinClientError::JSONErr)
     }
