@@ -189,6 +189,18 @@ impl CSCoinClient {
         pkey
     }
 
+    pub fn compute_signature(&mut self, data: &[u8]) -> String {
+
+        let mut hasher:      Sha256   = Sha256::new();
+        let mut hash_result: [u8; 32] = [0; 32];
+
+        hasher.input(&data);
+        hasher.result(&mut hash_result);
+
+        let signature_bytes = self.keys.sign(&hash_result);
+        signature_bytes.as_slice().to_hex()
+    }
+
     /// ## Get Current Challenge
     ///
     /// Fetch the current problem set from the Central Authority
@@ -246,21 +258,8 @@ impl CSCoinClient {
         let key = String::from_utf8(key_cursor.into_inner()).unwrap();
 
         //Get signature
-        let mut hasher = Sha256::new();
-        hasher.input(&self.keys.save_pub());
-        //panic!("{}", hasher.result_str());
-        let mut hash_result: [u8; 32] = [0; 32];
-        hasher.result(&mut hash_result);
-        //panic!("{:?}", hash_result);
-        let signature_bytes = self.keys.sign(&hash_result);
-        let mut signature = signature_bytes.as_slice().to_hex();
-        /*for byte in signature_bytes {
-            signature += &format!("{:x}", byte);
-        }*/
-
-        //let mut signature = "565491ecb42746965944ea6011c5e31533a6ae171054af44ccfd83a9c1a177f9bcb1bc96101261aac74943c6832c312a348bba332fc501ef21c712e0840da902fb56a44191fce2e20a3b412880178311cf45ba15118efede167024b5a44f2c3e06aa5872e31d306b3b427cb8b670c9a0b761598578a3cab1d647f1f35a318eb6";
-
-        //panic!("{}", signature);
+        let pub_key_der = self.keys.save_pub();
+        let signature = self.compute_signature(&pub_key_der);
 
         let mut args: Map<String, Value> = Map::new();
         args.insert("name".to_string(),      Value::String(name.to_string()));
