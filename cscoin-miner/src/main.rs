@@ -32,9 +32,13 @@ fn main() {
 
     //get first challenge and assign to workers
     let first_challenge = client.get_current_challenge().unwrap();
+
+
     //worker_manager.setup();
 
     loop {
+
+        //check if connection dropped
 
         //do some work in main thread
         //worker_manager.main_work()
@@ -46,6 +50,8 @@ fn main() {
         //    //get new challenge
         //    //send assignment to threads
         //}
+
+        //Check if were out of time and need a new challenge
 
         //if solution not found continue working
 
