@@ -338,16 +338,9 @@ impl CSCoinClient {
     /// Response:  SubmitProblem
     ///
     /// References: https://github.com/csgames/cscoins#submit-a-problem-solution
-    pub fn submission(&mut self, challenge_id: u64, nonce: String, hash: String) -> Result<SubmitProblem, CSCoinClientError> {
-
-        let signature_data = format!("{},{},{:.5}", challenge_id, nonce, hash);
-        let signature      = self.compute_signature(signature_data.as_bytes());
-
+    pub fn submission(&mut self, nonce: String) -> Result<SubmitProblem, CSCoinClientError> {
         let mut args: Map<String, Value> = Map::new();
-        args.insert("challenge_id".to_string(), Value::Number(Number::from(challenge_id)));
         args.insert("nonce".to_string(),        Value::String(nonce));
-        args.insert("hash".to_string(),         Value::String(hash));
-        args.insert("signature".to_string(),    Value::String(signature));
         args.insert("wallet_id".to_string(),    Value::String(self.wallet_id.clone()));
         self.send_command(CommandPayload{
             command: "submission".to_string(),
