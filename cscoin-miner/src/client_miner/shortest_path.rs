@@ -1,10 +1,9 @@
-extern crate rand;
-extern crate mersenne_twister;
 use rand::{Rng, SeedableRng};
 use mersenne_twister::MersenneTwister;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
+use itertools::Itertools;
 use std::usize;
 
 
@@ -26,7 +25,7 @@ impl PartialOrd for State {
     }
 }
 
-struct grid{
+pub struct grid{
     size:usize,
     num_blockers:u64,
     grid_space:Vec<bool>,
@@ -36,7 +35,7 @@ struct grid{
 
 impl grid{
 
-    fn new(sz:usize, nb:u64)->grid{
+    pub fn new(sz:usize, nb:u64)->grid{
         grid{
             size:sz,
             num_blockers:nb,
@@ -47,13 +46,13 @@ impl grid{
 
     }
 
-    fn neighbours(&self, pt:usize)->[Option<usize>;4]{
+    pub fn neighbours(&self, pt:usize)->[Option<usize>;4]{
         let neighbours:[Option<usize>;4]=[self.maybe_neighbour(pt+self.size),self.maybe_neighbour(pt-self.size),self.maybe_neighbour(pt+1),self.maybe_neighbour(pt-1)];
 
         return neighbours;
     }
 
-    fn maybe_neighbour(&self, pt:usize)->Option<usize>{
+    pub fn maybe_neighbour(&self, pt:usize)->Option<usize>{
         if pt<self.grid_space.len() && self.grid_space[pt]{
             return Some(pt);
         }else{
@@ -61,13 +60,13 @@ impl grid{
         }
     }
 
-    fn at_mod(&self, x:usize, y:usize)->usize{
-        return (x%self.size)*self.size+y%self.size;
+    pub fn at_mod(&self, x:usize, y:usize)->usize{
+        return (y%self.size)*self.size+x%self.size;
     }
 
-    fn at(&self, x:usize, y:usize)->Option<usize>{
+    pub fn at(&self, x:usize, y:usize)->Option<usize>{
         if x<self.size && y<self.size{
-            return Some(x*self.size+y);
+            return Some(y*self.size+x);
         }else{
             return None;
         }
@@ -88,15 +87,16 @@ impl grid{
 
     //Place location as occupied, returns true if not already occupied
     fn place_loc(&mut self, x:usize, y:usize)->bool{
-        if self.grid_space[self.at_mod(x,y)]{
-            self.grid_space[self.at_mod(x,y)]=false;
+        let loc=self.at_mod(x,y);
+        if self.grid_space[loc]{
+            self.grid_space[loc]=false;
             return true;
         }else{
             return false;
         }
     }
 
-    fn populate(&mut self, random:&mut MersenneTwister){
+    pub fn populate(&mut self, random:&mut MersenneTwister){
 
         self.place_walls();
 
@@ -128,7 +128,7 @@ impl grid{
 
 }
 
-fn Dijsktra(_grid:grid)->Option<(HashMap<usize,Option<usize>>,HashMap<usize,usize>)>{
+pub fn dijsktra(_grid:grid)->Option<(HashMap<usize,Option<usize>>,usize)>{
     let mut frontier=BinaryHeap::new();
 
     let mut came_from=HashMap::new();
@@ -140,7 +140,7 @@ fn Dijsktra(_grid:grid)->Option<(HashMap<usize,Option<usize>>,HashMap<usize,usiz
 
     while let Some(State { cost, position }) = frontier.pop() {
         // Alternatively we could have continued to find all shortest paths
-        if position == _grid.end_pt {return None;} //TODO return reconstructed path}
+        if position == _grid.end_pt {return Some((came_from,cost));} //TODO return reconstructed path}
 
         // For each node we can reach, see if we can find a way with
         // a lower cost going through this node
@@ -156,9 +156,7 @@ fn Dijsktra(_grid:grid)->Option<(HashMap<usize,Option<usize>>,HashMap<usize,usiz
                     let next_state=State{cost: new_cost, position: pt};
 
                     frontier.push(next_state);
-
                     came_from.insert(pt, Some(position));
-
                 }
                 &None=>{}
             }
@@ -168,6 +166,25 @@ fn Dijsktra(_grid:grid)->Option<(HashMap<usize,Option<usize>>,HashMap<usize,usiz
 
     // Goal not reachable
     None
+}
 
+pub fn reconstructPath(came_from: HashMap<usize,Option<usize>>, cost: usize, _grid:grid)->String{
+    let mut current:Option<usize>=Some(_grid.end_pt);
 
+    let mut path : Vec<usize>=Vec::with_capacity((cost+1)*2);
+
+    while current!=None {
+        match current{
+            Some(pt)=>{
+                path.push(pt%_grid.size);
+                path.push(pt/_grid.size);
+                current=came_from[&pt];
+            }
+            None=>{break;}
+        }
+    }
+
+    path.reverse();
+
+    return path.clone().iter().join("");
 }
