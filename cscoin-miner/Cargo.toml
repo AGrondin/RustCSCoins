@@ -1,7 +1,7 @@
 [package]
 name = "cscoin-miner"
 version = "0.1.0"
-authors = ["Alexis Grondin <agrondin1@hotmail.com>"]
+authors = ["Alexis Grondin <agrondin1@hotmail.com>", "Alex Frappier Lachapelle <cyberunner23@protonmail.com>"]
 
 [dependencies]
 mersenne_twister = "1.0.0"
@@ -9,3 +9,8 @@ rand = "*"
 rust-crypto = "^0.2"
 byteorder = "1.0.0"
 itertools = "0.5.9"
+openssl      = "0.7.6"
+serde        = "0.9"
+serde_derive = "0.9"
+serde_json   = "0.9"
+websocket    = "0.17.1"
