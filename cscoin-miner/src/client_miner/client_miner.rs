@@ -6,7 +6,7 @@ use std::u32;
 use std::cmp::Ordering;
 use crypto::digest::Digest;
 use crypto::sha2::Sha256;
-use byteorder::{ByteOrder};
+use byteorder::{ByteOrder, LittleEndian};
 use itertools::Itertools;
 
 mod shortest_path;
@@ -59,114 +59,120 @@ impl miner{
 
     }
 
-
-
-    pub fn solve_order(&mut self, lastSolution:String, target:&[u8], numInts:u64, reverse:bool) -> (String,u64)
+    pub fn get_seed(&mut self, last_solution:String, nonce:u64)->u64
     {
+        let mut new_seed:[u8;32]=[0;32];
 
-        loop{
+        self.hasher.reset();
 
-            //TODO: Place the following into reseed with nonce function
-            let mut new_seed:[u8;32]=[0;32];
+        self.hasher.input_str(&(format!("{}{}", last_solution, nonce.to_string())));
 
-            //Start loop
+        self.hasher.result(&mut new_seed);
 
-            //Reseed rng (use thread_rng?)
+        let seed: u64 = LittleEndian::read_u64(&new_seed[0..8]);
 
-            //Generate 8 byte Nonce using rng
-
-            let nonce = self.rng.next_u64();
-
-            self.hasher.reset();
-
-            self.hasher.input_str(&(format!("{}{}", lastSolution, nonce.to_string())));
-
-            self.hasher.result(&mut new_seed);
-
-            //Concatenate prefix and Nonce using push_into mut str (maybe as [u8], see what's faster)
-
-            let mut seed: u64 = 16;
-
-            //prefix.clone_from_slice(&new_seed[0..8]);
-
-            //let mut seed: u64 = ByteOrder::read_u64(prefix);
-            //
-
-            self.rng.reseed(seed);
-
-            let mut numbers = self.getNumberList(x as usize);
-
-            let mut concat_string:String = if reverse {self.reverseSortList(numbers)} else {self.sortList(numbers)};
-
-            self.hasher.reset();
-
-            self.hasher.input_str(&concat_string);
-
-            let hash_res=self.hasher.result_str();
-
-            if &hash_res[0..2]==target{
-                return (hash_res, nonce);
-            };
-
-
-        }
+        return seed;
 
     }
 
-    pub fn solve_shortest_path(&mut self, lastSolution:String, target:&[u8], size:usize, num_blockers: usize) -> (String,u64)
+    pub fn sorted_list_challenge(&mut self, last_solution:String, target:String, numInts:u64) -> (String,u64)
     {
 
-        loop{
-            //TODO: Place the following into reseed with nonce function
-            let mut new_seed:[u8;32]=[0;32];
+        let nonce = self.rng.next_u64();
 
-            //Start loop
+        let seed = self.get_seed(last_solution, nonce);
 
-            //Reseed rng (use thread_rng?)
-            //Generate 8 byte Nonce using rng
+        self.rng.reseed(seed);
 
-            let nonce = self.rng.next_u64();
+        let mut numbers = self.getNumberList(x as usize);
+
+        let mut concat_string:String = self.sortList(numbers);
+
+        self.hasher.reset();
+
+        self.hasher.input_str(&concat_string);
+
+        let hash_res=self.hasher.result_str();
+
+        return (hash_res, nonce);
+        //  if &(res_digest.as_bytes())[0..4] == prefix.as_bytes();{
+        //     return Some((hash_res,nonce));
+        // };
+        //
+        // None
+    }
+
+    pub fn reverse_challenge(&mut self, last_solution:String, target:String, numInts:u64) -> (String,u64)
+    {
+
+        let nonce = self.rng.next_u64();
+
+        let seed = self.get_seed(last_solution, nonce);
+
+        self.rng.reseed(seed);
+
+        let mut numbers = self.getNumberList(x as usize);
+
+        let mut concat_string:String = self.reverseSortList(numbers);
+
+        self.hasher.reset();
+
+        self.hasher.input_str(&concat_string);
+
+        let hash_res=self.hasher.result_str();
+
+        return (hash_res, nonce);
+        //  if &(res_digest.as_bytes())[0..4] == prefix.as_bytes();{
+        //     return Some((hash_res,nonce));
+        // };
+        //
+        // None
+    }
+
+    pub fn solve_shortest_path(&mut self, last_solution:String, target:String, size:usize, num_blockers: usize) -> (String,u64)
+    {
 
 
-            self.hasher.reset();
+        //TODO: Place the following into reseed with nonce function
 
-            self.hasher.input_str(&(format!("{}{}", lastSolution, nonce.to_string())));
+        //Start loop
 
-            self.hasher.result(&mut new_seed);
+        //Reseed rng (use thread_rng?)
 
-            //Concatenate prefix and Nonce using push_into mut str (maybe as [u8], see what's faster)
+        //Generate 8 byte Nonce using rng
 
-            let mut seed: u64 = 16;
+        let nonce = self.rng.next_u64();
 
-            //prefix.clone_from_slice(&new_seed[0..8]);
+        let seed=self.get_seed(last_solution, nonce);
 
-            //let mut seed: u64 = ByteOrder::read_u64(prefix);
+        //prefix.clone_from_slice(&new_seed[0..8]);
 
+        //let mut seed: u64 = ByteOrder::read_u64(prefix);
+        //
 
-            self.rng.reseed(seed);
+        self.rng.reseed(seed);
 
-            let new_grid = grid::new(size, num_blockers);
+        let new_grid = grid::new(size, num_blockers);
 
-            new_grid.populate(&mut self.rng);
+        new_grid.populate(&mut self.rng);
 
-            if let Some(solution) = dijsktra(new_grid){
-                let (came_from, cost) = solution;
-                let solution_string = reconstructPath(new_grid, came_from, cost);
-            } else {
-                continue;
-            }
-
-            self.hasher.reset();
-
-            self.hasher.input_str(&solution_string);
-
-            let hash_res=self.hasher.result_str();
-
-            if &hash_res[0..2]==target{
-                return (hash_res,nonce);
-            };
-
+        if let Some(solution) = a_star(new_grid){
+            let (came_from, cost) = solution;
+            let solution_string = reconstructPath(new_grid, came_from, cost);
+        } else {
+            continue;
         }
 
+        self.hasher.reset();
+
+        self.hasher.input_str(&solution_string);
+
+        let hash_res=self.hasher.result_str();
+
+        return (hash_res,nonce);
+
+        //
+        //  if &(res_digest.as_bytes())[0..4] == prefix.as_bytes();{
+        // };
     }
 }

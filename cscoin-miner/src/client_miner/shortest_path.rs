@@ -116,13 +116,13 @@ impl Grid{
 
     pub fn at_mod(&self, x:usize, y:usize)->usize
     {
-        return (y%self.size)*self.size+x%self.size;
+        return (x%self.size)*self.size+y%self.size;
     }
 
     pub fn at(&self, x:usize, y:usize)->Option<usize>
     {
         if x<self.size && y<self.size{
-            return Some(y*self.size+x);
+            return Some(x*self.size+y);
         }else{
             return None;
         }
@@ -234,7 +234,6 @@ pub fn a_star(_grid:&Grid)->Option<(HashMap<usize,Option<usize>>,usize)>
                 },
                 &None=>{}
             }
-
         }
     }
 
