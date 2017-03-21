@@ -30,15 +30,16 @@ fn main() {
     let mut worker_manager = threads::ThreadManager::new(NUM_THREADS);
 
     //get first challenge and assign to workers
-    let first_challenge      = client.get_current_challenge().unwrap();
-    let first_assignment     = get_assignment(first_challenge);
-    worker_manager.setup(first_assignment);
+    let first_challenge  = client.get_current_challenge().unwrap();
+    let first_assignment = get_assignment(first_challenge);
+    worker_manager.setup(first_assignment.clone());
 
     loop {
 
         //check if connection dropped
 
         //do some work in main thread
+
         //worker_manager.main_work()
 
         //check if a worker found a solution

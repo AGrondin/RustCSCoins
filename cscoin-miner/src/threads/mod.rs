@@ -68,6 +68,22 @@ impl ThreadManager {
 
     }
 
+    pub fn do_main_work(&mut self) {
+        let thread_tx = Arc::new(Mutex::new(self.main_tx.clone()));
+        let challenge = self.challenge_handle.clone();
+        Worker::new(thread_tx, challenge).do_work(false);
+    }
+
+    pub fn stop(&mut self) {
+
+        self.set_new_assignment(ThreadAssignment::Stop);
+
+        for i in 0..self.threads.len() {
+            self.threads.pop().unwrap().join();
+        }
+
+    }
+
     pub fn set_new_assignment(&mut self, assignment: ThreadAssignment) {
         let assignment_mutex = self.challenge_handle.clone();
         *assignment_mutex.lock().unwrap() = assignment;

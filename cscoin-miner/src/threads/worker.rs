@@ -31,6 +31,18 @@ impl Worker {
 
         while do_loop {
 
+            let assignment_arc = self.current_assignment.clone();
+            let assignment;
+
+            { //Lock is scope based, lock for as little time as possible
+                assignment = (*assignment_arc.lock().unwrap()).clone();
+            }
+
+            match assignment {
+                ThreadAssignment::Stop => {break;}
+                _ => {}
+            }
+
             //if sorted
             //  loop
                 // sorted
