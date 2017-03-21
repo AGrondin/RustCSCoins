@@ -1,5 +1,6 @@
 
 use std::sync::Arc;
+use std::sync::Mutex;
 use std::sync::mpsc::Sender;
 use std::sync::mpsc::Receiver;
 
@@ -12,20 +13,16 @@ static WORK_CHUNK_SIZE: u64 = 100;
 
 
 pub struct Worker {
-    current_assignment:  Arc<ThreadAssignment>,
-    nonce_sender:        Sender<String>,
-    /*assignment_receiver: Arc<Receiver<ThreadAssignment>>*/
+    current_assignment:  Arc<Mutex<ThreadAssignment>>,
+    nonce_sender:        Arc<Mutex<Sender<String>>>,
 }
 
 impl Worker {
 
-    pub fn new(/*assignment_receiver: Arc<Receiver<ThreadAssignment>>,*/
-               nonce_sender:        Sender<String>,
-               assignment:          Arc<ThreadAssignment>) -> Worker {
+    pub fn new(nonce_sender: Arc<Mutex<Sender<String>>>, assignment:   Arc<Mutex<ThreadAssignment>>) -> Worker {
         Worker{
-            current_assignment:  assignment.clone(),
-            nonce_sender:        nonce_sender,
-            /*assignment_receiver: assignment_receiver*/
+            current_assignment:  assignment,
+            nonce_sender:        nonce_sender
         }
     }
 
@@ -33,6 +30,14 @@ impl Worker {
     pub fn do_work(&mut self, do_loop: bool) -> (){
 
         while do_loop {
+
+            //if sorted
+            //  loop
+                // sorted
+            // check
+
+            //if reverse
+            //  loop
 
         }
 
