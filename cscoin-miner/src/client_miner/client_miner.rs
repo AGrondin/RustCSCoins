@@ -31,7 +31,7 @@ impl miner{
 
 
     //Returns a number of u64, for the sorted list challenges
-    pub fn getNumberList<'a>(&'a mut self, numInts: usize) -> Vec<u64>
+    pub fn get_number_list<'a>(&'a mut self, numInts: usize) -> Vec<u64>
     {
         let mut output=Vec::with_capacity(numInts);
 
@@ -42,7 +42,7 @@ impl miner{
         return output;
     }
 
-    pub fn sortList<'a>(&'a mut self, mut numbers: Vec<u64>)->String
+    pub fn sort_list<'a>(&'a mut self, mut numbers: Vec<u64>)->String
     {
         numbers.sort_by(|a,b| a.cmp(b));
 
@@ -52,7 +52,7 @@ impl miner{
     }
 
 
-    pub fn reverseSortList<'a>(&'a mut self, mut numbers: Vec<u64>) -> String
+    pub fn reverse_sort_list<'a>(&'a mut self, mut numbers: Vec<u64>) -> String
     {
         numbers.sort_by(|a,b| b.cmp(a));
 
@@ -89,9 +89,9 @@ impl miner{
 
         self.rng.reseed(seed);
 
-        let mut numbers = self.getNumberList(x as usize);
+        let mut numbers = self.get_number_list(x as usize);
 
-        let mut concat_string:String = self.sortList(numbers);
+        let mut concat_string:String = self.sort_list(numbers);
 
         self.hasher.reset();
 
@@ -116,9 +116,9 @@ impl miner{
 
         self.rng.reseed(seed);
 
-        let mut numbers = self.getNumberList(x as usize);
+        let mut numbers = self.get_number_list(x as usize);
 
-        let mut concat_string:String = self.reverseSortList(numbers);
+        let mut concat_string:String = self.reverse_sort_list(numbers);
 
         self.hasher.reset();
 
@@ -155,7 +155,7 @@ impl miner{
 
         if let Some(solution) = a_star(new_grid){
             let (came_from, cost) = solution;
-            let solution_string = reconstructPath(new_grid, came_from, cost);
+            let solution_string = reconstruct_path(new_grid, came_from, cost);
         } else {
             continue;
         }
