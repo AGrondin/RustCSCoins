@@ -11,6 +11,7 @@ use itertools::Itertools;
 
 mod shortest_path;
 
+##[derive(Debug)]
 pub struct miner{
     rng: MersenneTwister,
     lastSeed: u64,
@@ -28,6 +29,8 @@ impl miner{
         }
     }
 
+
+    //Returns a number of u64, for the sorted list challenges
     pub fn getNumberList<'a>(&'a mut self, numInts: usize) -> Vec<u64>
     {
         let mut output=Vec::with_capacity(numInts);
@@ -59,6 +62,7 @@ impl miner{
 
     }
 
+    //Passes the concatenation of the last_solution hash and the nonce, and plugs the result into a u64
     pub fn get_seed(&mut self, last_solution:String, nonce:u64)->u64
     {
         let mut new_seed:[u8;32]=[0;32];
@@ -75,7 +79,8 @@ impl miner{
 
     }
 
-    pub fn sorted_list_challenge(&mut self, last_solution:String, target:String, numInts:u64) -> (String,u64)
+    //Solves the sorted list challenge, and returns a tuple (hash, nonce)
+    pub fn sorted_list_challenge(&mut self, last_solution:String, numInts:u64) -> (String,u64)
     {
 
         let nonce = self.rng.next_u64();
@@ -102,7 +107,7 @@ impl miner{
         // None
     }
 
-    pub fn reverse_challenge(&mut self, last_solution:String, target:String, numInts:u64) -> (String,u64)
+    pub fn reverse_challenge(&mut self, last_solution:String, numInts:u64) -> (String,u64)
     {
 
         let nonce = self.rng.next_u64();
@@ -129,17 +134,9 @@ impl miner{
         // None
     }
 
-    pub fn solve_shortest_path(&mut self, last_solution:String, target:String, size:usize, num_blockers: usize) -> (String,u64)
+    pub fn solve_shortest_path(&mut self, last_solution:String, size:usize, num_blockers: usize) -> (String,u64)
     {
-
-
         //TODO: Place the following into reseed with nonce function
-
-        //Start loop
-
-        //Reseed rng (use thread_rng?)
-
-        //Generate 8 byte Nonce using rng
 
         let nonce = self.rng.next_u64();
 

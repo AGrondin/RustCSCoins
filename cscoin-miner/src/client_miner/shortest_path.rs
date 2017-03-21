@@ -26,6 +26,7 @@ impl PartialOrd for State {
     }
 }
 
+#[#[derive(Debug)]]
 pub struct Grid{
     pub size:usize,
     pub num_blockers:u64,
