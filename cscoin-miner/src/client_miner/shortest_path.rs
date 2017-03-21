@@ -66,8 +66,8 @@ impl fmt::Display for Grid {
                 //     grid_str.push_str("n");
                 // } else{
                     grid_str.push_str(" ");
-                }
-            } else if i==self.start_pt{
+            }
+             else if i==self.start_pt{
                 grid_str.push_str("s");
             } else if i==self.end_pt{
                 grid_str.push_str("e");
