@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Alexis Grondin <agrondin1@hotmail.com>", "Alex Frappier Lachapelle <cyberunner23@protonmail.com>"]
 
 [dependencies]
+crossbeam    = "0.2.10"
 openssl      = "0.7.12"
 rust-crypto  = "^0.2"
 rustc-serialize = "0.3.23"
