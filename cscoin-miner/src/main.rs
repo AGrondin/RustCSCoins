@@ -5,6 +5,7 @@ extern crate byteorder;
 extern crate itertools;
 extern crate openssl;
 extern crate serde;
+extern crate fnv;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
