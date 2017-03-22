@@ -5,7 +5,7 @@ use std::sync::mpsc::Sender;
 use std::sync::mpsc::Receiver;
 
 use threads::ThreadAssignment;
-
+use client_miner::miner::Miner;
 
 //Number of hashes to make per processing chunk
 static WORK_CHUNK_SIZE: u64 = 100;
@@ -15,6 +15,7 @@ static WORK_CHUNK_SIZE: u64 = 100;
 pub struct Worker {
     current_assignment:  Arc<Mutex<ThreadAssignment>>,
     nonce_sender:        Arc<Mutex<Sender<String>>>,
+    work_miner:          Miner
 }
 
 impl Worker {
@@ -22,7 +23,8 @@ impl Worker {
     pub fn new(nonce_sender: Arc<Mutex<Sender<String>>>, assignment:   Arc<Mutex<ThreadAssignment>>) -> Worker {
         Worker{
             current_assignment:  assignment,
-            nonce_sender:        nonce_sender
+            nonce_sender:        nonce_sender,
+            miner:               Miner::new()
         }
     }
 
@@ -39,17 +41,13 @@ impl Worker {
             }
 
             match assignment {
-                ThreadAssignment::Stop => {break;}
+                ThreadAssignment::Stop => {break;},
+                ThreadAssignment::SortedList(last_hash, prefix, num_int)=>{work_miner.sorted_list_challenge(last_hash, prefix, num_int)},
+                ThreadAssignment::ReverseSortedList(last_hash, prefix, num_int)=>{work_miner.reverse_challenge(last_hash, prefix, num_int)},
+                ThreadAssignment::ShortestPath(last_hash, prefix, size, num_blockers)=>{work_miner.shortest_path_challenge(last_hash, prefix, size, num_blockers)},
                 _ => {}
             }
 
-            //if sorted
-            //  loop
-                // sorted
-            // check
-
-            //if reverse
-            //  loop
 
         }
 
@@ -57,4 +55,3 @@ impl Worker {
     }
 
 }
-

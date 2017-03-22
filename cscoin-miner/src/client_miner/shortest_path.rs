@@ -11,7 +11,6 @@ use std::usize;
 
 
 
-
 #[derive(Eq, PartialEq, Copy, Clone)]
 struct State {
     cost: usize,
