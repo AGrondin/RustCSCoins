@@ -5,7 +5,7 @@ use std::sync::mpsc::Sender;
 use std::sync::mpsc::Receiver;
 
 use threads::ThreadAssignment;
-use client_miner::miner::Miner;
+use client_miner::Miner;
 
 //Number of hashes to make per processing chunk
 static WORK_CHUNK_SIZE: u64 = 100;
@@ -24,7 +24,7 @@ impl Worker {
         Worker{
             current_assignment:  assignment,
             nonce_sender:        nonce_sender,
-            miner:               Miner::new()
+            work_miner:          Miner::new()
         }
     }
 
@@ -42,9 +42,9 @@ impl Worker {
 
             match assignment {
                 ThreadAssignment::Stop => {break;},
-                ThreadAssignment::SortedList(last_hash, prefix, num_int)=>{work_miner.sorted_list_challenge(last_hash, prefix, num_int)},
-                ThreadAssignment::ReverseSortedList(last_hash, prefix, num_int)=>{work_miner.reverse_challenge(last_hash, prefix, num_int)},
-                ThreadAssignment::ShortestPath(last_hash, prefix, size, num_blockers)=>{work_miner.shortest_path_challenge(last_hash, prefix, size, num_blockers)},
+                ThreadAssignment::SortedList(last_hash, prefix, num_int)=>{self.work_miner.sorted_list_challenge(last_hash, prefix, num_int);},
+                ThreadAssignment::ReverseSortedList(last_hash, prefix, num_int)=>{self.work_miner.reverse_challenge(last_hash, prefix, num_int);},
+                ThreadAssignment::ShortestPath(last_hash, prefix, size, num_blockers)=>{self.work_miner.shortest_path_challenge(last_hash, prefix, size, num_blockers, 100);},
                 _ => {}
             }
 
