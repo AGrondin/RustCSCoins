@@ -39,16 +39,24 @@ fn main() {
         //check if connection dropped
 
         //do some work in main thread
-
-        //worker_manager.main_work()
+        worker_manager.do_main_work();
 
         //check if a worker found a solution
-        //worker_manager.get_solution()
-        //if solution found {
-        //    //send solution
-        //    //get new challenge
-        //    //send assignment to threads
-        //}
+        match worker_manager.get_solution() {
+            Some(nonce) => {
+
+                //Submit
+                client.submission(nonce).unwrap(); //TODO: ERROR CHECKING
+
+                //get new challenge
+                let new_challenge = client.get_current_challenge().unwrap(); //TODO: ERROR CHECK
+                let new_assignment = get_assignment(new_challenge);
+
+                //Dispatch new assignment
+                worker_manager.set_new_assignment(new_assignment);
+            },
+            None        => {}
+        }
 
         //Check if were out of time and need a new challenge
 

@@ -16,7 +16,7 @@ use self::worker::Worker;
 //-----------------------------------------------------------------------------
 
 //The assignment given to the worker threads
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum ThreadAssignment {
     Stop,
     //Last solution hash, hash prefix, nb_elements
@@ -91,8 +91,25 @@ impl ThreadManager {
 
     //Returns a solution if the threads found one
     //None otherwise
-    //fn get_solution() -> Option<> {
-    //
-    //}
+    pub fn get_solution(&mut self) -> Option<String> {
+        match self.main_rx.try_recv() {
+            Ok(nonce) => {
+
+                let assignment_arc = self.challenge_handle.clone();
+                let assignment;
+
+                {
+                    assignment     = (*assignment_arc.lock().unwrap()).clone();
+                }
+
+                println!("A solution was found!");
+                println!("{:?}", assignment);      //Janky af but eh
+                println!("With nonce {}", nonce);
+
+                Option::Some(nonce)
+            },
+            Err(_)    => Option::None
+        }
+    }
 
 }
