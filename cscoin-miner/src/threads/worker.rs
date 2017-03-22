@@ -8,7 +8,7 @@ use threads::ThreadAssignment;
 use client_miner::Miner;
 
 //Number of hashes to make per processing chunk
-static WORK_CHUNK_SIZE: u64 = 100;
+const WORK_CHUNK_SIZE: usize = 100;
 
 
 
@@ -42,10 +42,50 @@ impl Worker {
 
             match assignment {
                 ThreadAssignment::Stop => {break;},
-                ThreadAssignment::SortedList(last_hash, prefix, num_int)=>{self.work_miner.sorted_list_challenge(last_hash, prefix, num_int);},
-                ThreadAssignment::ReverseSortedList(last_hash, prefix, num_int)=>{self.work_miner.reverse_challenge(last_hash, prefix, num_int);},
-                ThreadAssignment::ShortestPath(last_hash, prefix, size, num_blockers)=>{self.work_miner.shortest_path_challenge(last_hash, prefix, size, num_blockers, 100);},
-                _ => {}
+                ThreadAssignment::SortedList(last_hash, prefix, num_int)=>{
+                    let mut results:Vec<(String, u64)>=Vec::with_capacity(WORK_CHUNK_SIZE);
+                    for i in 0..WORK_CHUNK_SIZE{
+                      results.push(self.work_miner.sorted_list_challenge(&last_hash, &prefix, num_int));
+                    }
+
+                    for (hash,nonce) in results{
+                      if &(hash.as_bytes())[0..4]==prefix.as_bytes() {
+                        (*self.nonce_sender.lock().unwrap()).send(nonce.to_string()).unwrap();
+                        break;
+                      }
+                    }
+                },
+                ThreadAssignment::ReverseSortedList(last_hash, prefix, num_int)=>{
+                  let mut results:Vec<(String, u64)>=Vec::with_capacity(WORK_CHUNK_SIZE);
+                  for i in 0..WORK_CHUNK_SIZE{
+                    results.push(self.work_miner.reverse_challenge(&last_hash, &prefix, num_int));
+                  }
+
+                  for (hash,nonce) in results{
+                    if &(hash.as_bytes())[0..4]==prefix.as_bytes() {
+                      (*self.nonce_sender.lock().unwrap()).send(nonce.to_string()).unwrap();
+                      break;
+                    }
+                  }
+                },
+                ThreadAssignment::ShortestPath(last_hash, prefix, size, num_blockers)=>{
+                  let mut results:Vec<Option<(String, u64)>>=Vec::with_capacity(WORK_CHUNK_SIZE);
+                  for i in 0..WORK_CHUNK_SIZE{
+                    results.push(self.work_miner.shortest_path_challenge(&last_hash, &prefix, size, num_blockers, 100));
+                  }
+
+                  for opt in results{
+                    match opt{
+                      Some((h,n))=>{
+                        if &(h.as_bytes())[0..4]==prefix.as_bytes() {
+                          (*self.nonce_sender.lock().unwrap()).send(n.to_string()).unwrap();
+                          break;
+                        }
+                      },
+                      _=>{}
+                    }
+                  }
+                }
             }
 
 

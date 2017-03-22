@@ -84,12 +84,12 @@ impl Miner{
     }
 
     //Solves the sorted list challenge, and returns a tuple (hash, nonce)
-    pub fn sorted_list_challenge(&mut self, last_solution:String, prefix:String, num_ints:u64) -> (String,u64)
+    pub fn sorted_list_challenge(&mut self, last_solution:&String, prefix:&String, num_ints:u64) -> (String,u64)
     {
 
         let nonce = self.rng.next_u64();
 
-        let seed = self.get_seed(&last_solution, nonce);
+        let seed = self.get_seed(last_solution, nonce);
 
         self.rng.reseed(seed);
 
@@ -105,12 +105,12 @@ impl Miner{
 
     }
 
-    pub fn reverse_challenge(&mut self, last_solution:String, prefix: String, num_ints:u64) ->(String,u64)
+    pub fn reverse_challenge(&mut self, last_solution:&String, prefix: &String, num_ints:u64) ->(String,u64)
     {
 
         let nonce = self.rng.next_u64();
 
-        let seed = self.get_seed(&last_solution, nonce);
+        let seed = self.get_seed(last_solution, nonce);
 
         self.rng.reseed(seed);
 
@@ -129,13 +129,13 @@ impl Miner{
 
 
 
-    pub fn shortest_path_challenge(&mut self, last_solution:String, prefix: String, size:u64, num_blockers: u64, num_loops: u64) -> Option<(String,u64)> 
+    pub fn shortest_path_challenge(&mut self, last_solution:&String, prefix: &String, size:u64, num_blockers: u64, num_loops: u64) -> Option<(String,u64)>
     {
         for i in 0..num_loops{
 
             let nonce = self.rng.next_u64();
 
-            let seed=self.get_seed(&last_solution, nonce);
+            let seed=self.get_seed(last_solution, nonce);
 
             self.rng.reseed(seed);
 
