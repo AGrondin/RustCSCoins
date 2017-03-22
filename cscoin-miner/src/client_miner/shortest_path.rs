@@ -1,10 +1,14 @@
 use rand::{Rng, SeedableRng};
 use mersenne_twister::MersenneTwister;
 use std::cmp::Ordering;
+use std::cmp;
 use std::collections::BinaryHeap;
-use std::collections::HashMap;
+use fnv::FnvHashSet;
+use fnv::FnvHashMap;
 use itertools::Itertools;
+use std::fmt;
 use std::usize;
+
 
 
 
@@ -26,11 +30,10 @@ impl PartialOrd for State {
     }
 }
 
-#[#[derive(Debug)]]
 pub struct Grid{
     pub size:usize,
     pub num_blockers:u64,
-    pub grid_space:Vec<bool>,
+    pub blockers:FnvHashSet<usize>,
     pub start_pt:usize,
     pub end_pt:usize
 }
@@ -54,33 +57,29 @@ impl fmt::Display for Grid {
         grid_str.push_str("\n ");
 
         for i in 0..self.size{
-            grid_str.push_str(&i.to_string());
+            grid_str.push_str(&format!("{number:>width$}", number=&i.to_string(), width=2));
         }
-        for i in 0..self.grid_space.len(){
+        for i in 0..self.size*self.size{
             if i%self.size==0 {
                 grid_str.push_str("\n");
-                grid_str.push_str(&(i/self.size).to_string());
+                grid_str.push_str(&format!("{number:>width$}", number=&(i/self.size).to_string(), width=2));
             }
-
-            if self.grid_space[i]{
-                // if start_neighbours.contains(&i){
-                //     grid_str.push_str("n");
-                // } else{
-                    grid_str.push_str(" ");
-            }
-             else if i==self.start_pt{
-                grid_str.push_str("s");
-            } else if i==self.end_pt{
-                grid_str.push_str("e");
+            if i==self.end_pt{
+                grid_str.push_str("e ");
+            } else if i==self.start_pt{
+                grid_str.push_str("s ");
+            } else if self.blockers.contains(&i){
+                grid_str.push_str("x ");
             } else{
-                grid_str.push_str("x");
+                grid_str.push_str("  ");
             }
-
         }
-
         write!(f, "{}", grid_str)
+
     }
+
 }
+
 
 impl Grid{
 
@@ -89,7 +88,7 @@ impl Grid{
         Grid{
             size:sz,
             num_blockers:nb,
-            grid_space:vec![true;sz*sz],
+            blockers:FnvHashSet::with_capacity_and_hasher(sz*4+(nb as usize), Default::default()),
             start_pt:0,
             end_pt:0
         }
@@ -98,17 +97,19 @@ impl Grid{
 
     pub fn neighbours(&self, pt:usize)->[Option<usize>;4]
     {
-        let neighbours:[Option<usize>;4]=[self.maybe_neighbour(pt.checked_add(self.size).unwrap_or(self.grid_space.len())),
+        let neighbours:[Option<usize>;4]=[self.maybe_neighbour(pt.checked_add(self.size).unwrap_or(self.size*self.size)),
                                           self.maybe_neighbour(pt.checked_sub(self.size).unwrap_or(0)),
-                                          self.maybe_neighbour(pt.checked_add(1).unwrap_or(self.grid_space.len())),
+                                          self.maybe_neighbour(pt.checked_add(1).unwrap_or(self.size*self.size)),
                                           self.maybe_neighbour(pt.checked_sub(1).unwrap_or(0))];
 
         return neighbours;
     }
 
+    //ONLY WORKS FOR NON-BOUNDARY POINTS TO SAVE TIME
+    //Should not be called on walls
     pub fn maybe_neighbour(&self, pt:usize)->Option<usize>
     {
-        if pt<self.grid_space.len() && self.grid_space[pt]{
+        if pt<self.size*self.size && !self.blockers.contains(&pt){
             return Some(pt);
         }else{
             return None;
@@ -129,13 +130,14 @@ impl Grid{
         }
     }
 
+    //Does not check for start/end points, since they should not be initialized when this is called
     fn place_walls(&mut self)
     {
         for i in 0..(self.size){
-            self.grid_space[i]=false;
-            self.grid_space[(self.size-1)*self.size+i]=false;
-            self.grid_space[self.size*i+self.size-1]=false;
-            self.grid_space[self.size*i]=false;
+            self.blockers.insert(i);
+            self.blockers.insert((self.size-1)*self.size+i);
+            self.blockers.insert(self.size*i+self.size-1);
+            self.blockers.insert(self.size*i);
         }
     }
 
@@ -145,18 +147,6 @@ impl Grid{
          +(cmp::max(start/self.size, goal/self.size)-cmp::min(start/self.size, goal/self.size))
     }
 
-
-    //Place location as occupied, returns true if not already occupied
-    fn place_loc(&mut self, x:usize, y:usize)->bool
-    {
-        let loc=self.at_mod(x,y);
-        if self.grid_space[loc]{
-            self.grid_space[loc]=false;
-            return true;
-        }else{
-            return false;
-        }
-    }
 
     pub fn populate(&mut self, random:&mut MersenneTwister)
     {
@@ -173,33 +163,34 @@ impl Grid{
         }
 
         self.start_pt=self.at_mod(x,y);
-        self.grid_space[self.start_pt]=false;
+        self.blockers.insert(self.start_pt);
 
         let mut found_end=false;
         while !found_end{
             x=random.next_u64() as usize;
             y=random.next_u64() as usize;
-            found_end=self.place_loc(x,y);
+            found_end=!self.blockers.contains(&self.at_mod(x,y));
         }
 
         self.end_pt=self.at_mod(x,y);
 
         for i in 0..self.num_blockers{
-            self.place_loc(random.next_u64() as usize,random.next_u64() as usize);
+            let loc = self.at_mod(random.next_u64() as usize,random.next_u64() as usize);
+            if loc!=self.end_pt{
+                self.blockers.insert(loc);
+            }
         }
-
-        self.grid_space[self.end_pt]=true;
     }
 
 }
 
 
-pub fn a_star(_grid:&Grid)->Option<(HashMap<usize,Option<usize>>,usize)>
+pub fn a_star(_grid:&Grid)->Option<(FnvHashMap<usize,Option<usize>>,usize)>
 {
     let mut frontier=BinaryHeap::new();
 
-    let mut came_from=HashMap::new();
-    let mut cost_so_far=HashMap::new();
+    let mut came_from=FnvHashMap::default();
+    let mut cost_so_far=FnvHashMap::default();
 
     frontier.push(State{cost:0, position:_grid.start_pt});
     came_from.insert(_grid.start_pt, None);
@@ -224,9 +215,7 @@ pub fn a_star(_grid:&Grid)->Option<(HashMap<usize,Option<usize>>,usize)>
                     let new_cost = cost_so_far[&position] + 1;
 
                     if !cost_so_far.contains_key(&pt) || cost_so_far[&pt]>new_cost{
-                        //println!("{}:{}->{}:{}", (pt%_grid.size).to_string(),(pt/_grid.size).to_string(),new_cost.to_string(),_grid.distance_h(pt,_grid.end_pt));
                         cost_so_far.insert(pt, new_cost);
-                        //println!("{}",new_cost+_grid.distance_h(pt,_grid.end_pt));
                         let next_state=State{cost: new_cost+_grid.distance_h(pt,_grid.end_pt), position: pt};
 
                         frontier.push(next_state);
@@ -243,7 +232,7 @@ pub fn a_star(_grid:&Grid)->Option<(HashMap<usize,Option<usize>>,usize)>
     None
 }
 
-pub fn reconstruct_path(_grid:&Grid, came_from: HashMap<usize,Option<usize>>, cost: usize)->String
+pub fn reconstruct_path(_grid:&Grid, came_from: FnvHashMap<usize,Option<usize>>, cost: usize)->String
 {
     let mut current:Option<usize>=Some(_grid.end_pt);
 
