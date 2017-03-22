@@ -16,6 +16,7 @@ use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 use openssl::crypto::pkey::{EncryptionPadding, PKey};
 use openssl::ssl::{SslContext, SslMethod};
+use rustc_serialize::hex::ToHex;
 use serde;
 use serde_json;
 use serde_json::map::Map;
@@ -51,9 +52,10 @@ pub mod error;
 // Consts
 //---------------------------------------------------------
 
-pub static DEFAULT_URI: &'static str = "wss://cscoins.2017.csgames.org:8989/client";
-pub static TEST_URI:    &'static str = "ws://127.0.0.1:8989/client";
-
+pub static DEFAULT_URI:   &'static str = "wss://cscoins.2017.csgames.org:8989/client";
+pub static TEST_URI:      &'static str = "ws://127.0.0.1:8989/client";
+pub static PRIV_PEM_FILE: &'static str = "private_key.pem";
+pub static PUB_PEM_FILE:  &'static str = "public_key.pem";
 
 //---------------------------------------------------------
 // Payload Struct
@@ -72,14 +74,15 @@ pub struct CommandPayload {
 //Holds the client state
 
 pub struct CSCoinClient {
-    client: WebSockClient<WSCDataFrame, WSCSender<WebSocketStream>, WSCReceiver<WebSocketStream>>,
-    keys:   PKey
+    client:    WebSockClient<WSCDataFrame, WSCSender<WebSocketStream>, WSCReceiver<WebSocketStream>>,
+    keys:      PKey,
+    wallet_id: String
 }
 
 impl CSCoinClient {
 
     //Use this to connect to the CA Server
-    pub fn connect(server_uri: &'static str) -> Result<CSCoinClient, CSCoinClientError>{
+    pub fn connect(server_uri: &'static str) -> Result<CSCoinClient, CSCoinClientError> {
 
         //Load keys
         CSCoinClient::create_rsa_keys();
@@ -95,9 +98,14 @@ impl CSCoinClient {
         try!(response.validate()                             // Validate response
             .map_err(CSCoinClientError::WebSockErr));
 
+        //Computer wallet id
+        let mut hasher = Sha256::new();
+        hasher.input(&pkey.save_pub());
+
         Ok(CSCoinClient {
-            client: response.begin(),
-            keys: pkey
+            client:    response.begin(),
+            keys:      pkey,
+            wallet_id: hasher.result_str()
         })
     }
 
@@ -129,7 +137,7 @@ impl CSCoinClient {
         let payload = try!(serde_json::to_string(&command_payload)
             .map_err(CSCoinClientError::JSONErr));
 
-        println!("PAYLOAD: {}", payload);
+        println!("Sending command: {}", command_payload.command);
 
         //Send Payload
         try!(self.client.send_message(&Message::text(payload))
@@ -140,15 +148,12 @@ impl CSCoinClient {
         //Receive and extract response
         let response: Message = try!(receiver.recv_message() //get response
             .map_err(CSCoinClientError::WebSockErr));
-        println!("{:?}", response);
         let mut response_cursor = Cursor::new(Vec::new());   //create essentially what is a buffer
         try!(response.write_payload(&mut response_cursor)    //write payload to buffer
             .map_err(CSCoinClientError::WebSockErr));
         //Turn buffer data to String
         let response_str = try!(String::from_utf8(response_cursor.into_inner())
             .map_err(CSCoinClientError::UTF8Err));
-
-        println!("{}", response_str);
 
         serde_json::from_str(&response_str[..]).map_err(CSCoinClientError::JSONErr)
     }
@@ -164,17 +169,17 @@ impl CSCoinClient {
         pkey.gen(1024);
 
         //Write private key if non existant
-        let priv_meta = fs::metadata("private_key.der");
+        let priv_meta = fs::metadata(PRIV_PEM_FILE);
         if priv_meta.is_err() || !priv_meta.unwrap().is_file() {
-            let mut priv_file = File::create("private_key.der").unwrap();
-            priv_file.write_all(pkey.save_priv().as_slice()).unwrap();
+            let mut priv_file = File::create(PRIV_PEM_FILE).unwrap();
+            pkey.write_pem(&mut priv_file).unwrap();
         }
 
         //Write public key if non existant
-        let pub_meta = fs::metadata("public_key.der");
+        let pub_meta = fs::metadata(PUB_PEM_FILE);
         if pub_meta.is_err() || !pub_meta.unwrap().is_file() {
-            let mut priv_file = File::create("public_key.der").unwrap();
-            priv_file.write_all(pkey.save_pub().as_slice()).unwrap();
+            let mut pub_file = File::create(PUB_PEM_FILE).unwrap();
+            pkey.write_pub_pem(&mut pub_file).unwrap();
         }
 
     }
@@ -182,22 +187,22 @@ impl CSCoinClient {
     pub fn load_rsa_keys() -> PKey {
 
         //TODO: Error checking
-
-        let mut pkey               = PKey::new();
-        let mut priv_file          = File::open("private_key.der").unwrap();
-        let mut pub_file           = File::open("public_key.der").unwrap();
-        let mut priv_data: Vec<u8> = Vec::new();
-        let mut pub_data:  Vec<u8> = Vec::new();
-
-        priv_file.read_to_end(&mut priv_data).unwrap();
-        pub_file.read_to_end(&mut pub_data).unwrap();
-
-        pkey.load_priv(&priv_data);
-        pkey.load_pub(&pub_data);
-
+        let mut priv_file = File::open(PRIV_PEM_FILE).unwrap();
+        let mut pkey      = PKey::private_rsa_key_from_pem(&mut priv_file).unwrap();
         pkey
     }
 
+    pub fn compute_signature(&mut self, data: &[u8]) -> String {
+
+        let mut hasher:      Sha256   = Sha256::new();
+        let mut hash_result: [u8; 32] = [0; 32];
+
+        hasher.input(&data);
+        hasher.result(&mut hash_result);
+
+        let signature_bytes = self.keys.sign(&hash_result);
+        signature_bytes.as_slice().to_hex()
+    }
 
     /// ## Get Current Challenge
     ///
@@ -256,16 +261,14 @@ impl CSCoinClient {
         let key = String::from_utf8(key_cursor.into_inner()).unwrap();
 
         //Get signature
-        let mut hasher = Sha256::new();
-        hasher.input(&self.keys.save_pub().as_slice());
-        let encrypted_hash = self.keys.private_encrypt_with_padding(hasher.result_str().as_bytes(), EncryptionPadding::PKCS1v15);
-        //let signature = String::from_utf8(encrypted_hash).unwrap();
+        let pub_key_der = self.keys.save_pub();
+        let signature = self.compute_signature(&pub_key_der);
 
         let mut args: Map<String, Value> = Map::new();
         args.insert("name".to_string(),      Value::String(name.to_string()));
         args.insert("key".to_string(),       Value::String(key));
-        args.insert("signature".to_string(), Value::String(hasher.result_str()));
-        self.send_command(CommandPayload{
+        args.insert("signature".to_string(), Value::String(signature));
+        self.send_command(CommandPayload {
             command: "register_wallet".to_string(),
             args:    Some(args)
         })
@@ -307,9 +310,13 @@ impl CSCoinClient {
     /// Response:  CreateTransaction
     ///
     /// References: https://github.com/csgames/cscoins#create-a-new-transaction-send-coins
-    pub fn create_transaction(&mut self, source: String, recipient: String, amount: f64, signature: String) -> Result<CreateTransaction, CSCoinClientError> {
+    pub fn create_transaction(&mut self, recipient: String, amount: f64) -> Result<CreateTransaction, CSCoinClientError> {
+
+        let signature_data = format!("{},{},{:.5}", self.wallet_id.clone(), recipient, amount);
+        let signature      = self.compute_signature(signature_data.as_bytes());
+
         let mut args: Map<String, Value> = Map::new();
-        args.insert("source".to_string(),    Value::String(source));
+        args.insert("source".to_string(),    Value::String(self.wallet_id.clone()));
         args.insert("recipient".to_string(), Value::String(recipient));
         args.insert("amount".to_string(),    Value::Number(Number::from_f64(amount).unwrap()));
         args.insert("signature".to_string(), Value::String(signature));
@@ -327,13 +334,14 @@ impl CSCoinClient {
     /// Command:   "submission"
     /// Arguments: wallet_id: String
     ///            nonce:     String
+    ///            hash:      String
     /// Response:  SubmitProblem
     ///
     /// References: https://github.com/csgames/cscoins#submit-a-problem-solution
-    pub fn submission(&mut self, wallet_id: String, nonce: String) -> Result<SubmitProblem, CSCoinClientError> {
+    pub fn submission(&mut self, nonce: String) -> Result<SubmitProblem, CSCoinClientError> {
         let mut args: Map<String, Value> = Map::new();
-        args.insert("wallet_id".to_string(), Value::String(wallet_id));
-        args.insert("nonce".to_string(),     Value::String(nonce));
+        args.insert("nonce".to_string(),        Value::String(nonce));
+        args.insert("wallet_id".to_string(),    Value::String(self.wallet_id.clone()));
         self.send_command(CommandPayload{
             command: "submission".to_string(),
             args:    Some(args)
@@ -431,7 +439,7 @@ fn test_register_wallet() {
 
     let wallet: RegisterWallet = match client.register_wallet("Concordia University") {
         Ok(wallet) => wallet,
-        Err(err)   => panic!("Error on get_challenge_solution(1): {:?}", err)
+        Err(err)   => panic!("Error on register_wallet(\"Concordia University\"): {:?}", err)
     };
 
     match client.disconnect() {
@@ -444,16 +452,31 @@ fn test_register_wallet() {
 #[test]
 fn test_get_transactions() {
 
+    let mut client = match CSCoinClient::connect(TEST_URI){
+        Ok(client) => client,
+        Err(err)   => panic!("Error on connect: {:?}", err)
+    };
+
+    let wallet: Transactions = match client.get_transactions(0, 100) {
+        Ok(wallet) => wallet,
+        Err(err)   => panic!("Error on get_transactions(0, 100): {:?}", err)
+    };
+
+    match client.disconnect() {
+        Ok(())   => (),
+        Err(err) => panic!("Error on disconnect: {:?}", err)
+    }
+
 }
 
 #[test]
 fn test_create_transaction() {
-
+    //TODO: once we get other clients and some coins/submissions
 }
 
 #[test]
 fn test_submission() {
-
+    //TODO: once we get other clients and some coins/submissions
 }
 
 #[test]
