@@ -25,6 +25,8 @@ static WORK_CHUNK_SIZE: u64 = 100;
 
 fn main() {
 
+    //TODO: Ctrl+C handling
+
     //Init comms
     let mut client         = server_comms::CSCoinClient::connect(server_comms::DEFAULT_URI).unwrap();
     let mut worker_manager = threads::ThreadManager::new(NUM_THREADS);
@@ -55,7 +57,7 @@ fn main() {
                 //Dispatch new assignment
                 worker_manager.set_new_assignment(new_assignment);
             },
-            None        => {}
+            None => {}
         }
 
         //Check if were out of time and need a new challenge
@@ -63,6 +65,9 @@ fn main() {
         //if solution not found continue working
 
     }
+
+    println!("Stopping...");
+    worker_manager.stop();
 
 }
 
