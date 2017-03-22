@@ -13,6 +13,10 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate websocket;
 
+extern crate ctrlc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+
 //Everything to do with communicating with the server.
 mod server_comms;
 mod client_miner;
@@ -31,7 +35,11 @@ static WORK_CHUNK_SIZE: u64 = 100;
 
 fn main() {
 
-    //TODO: Ctrl+C handling
+    let is_running = Arc::new(AtomicBool::new(true));
+    let r = is_running.clone();
+    ctrlc::set_handler(move || {
+        r.store(false, Ordering::SeqCst);
+    }).expect("Error setting Ctrl-C handler");
 
     //Init comms
     let mut client         = server_comms::CSCoinClient::connect(server_comms::DEFAULT_URI).unwrap();
@@ -42,7 +50,7 @@ fn main() {
     let first_assignment = get_assignment(first_challenge);
     worker_manager.setup(first_assignment.clone());
 
-    loop {
+    while is_running.load(Ordering::SeqCst) {
 
         //check if connection dropped
 

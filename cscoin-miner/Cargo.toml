@@ -17,5 +17,5 @@ serde_derive = "0.9"
 serde_json   = "0.9"
 websocket    = "0.17.1"
 fnv          = "1.0.5"
-
-
+rand = "*"
+ctrlc = "3.0.1"
