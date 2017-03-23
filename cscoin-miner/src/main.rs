@@ -72,7 +72,7 @@ fn main() {
             Some(nonce) => {
 
                 //Submit
-                client.submission(nonce).unwrap(); //TODO: ERROR CHECKING
+                println!("Submission result: {:?}", client.submission(nonce)); //TODO: ERROR CHECKING
 
                 //get new challenge
                 let new_challenge   = client.get_current_challenge().unwrap(); //TODO: ERROR CHECK
@@ -129,7 +129,7 @@ pub fn get_assignment(current_challenge: server_comms::cmd_response::CurrentChal
                 current_challenge.parameters.nb_elements.unwrap()
             )
         },
-        "shortest_path " => {
+        "shortest_path" => {
             threads::ThreadAssignment::ShortestPath(
                 current_challenge.last_solution_hash,
                 current_challenge.hash_prefix,
