@@ -102,11 +102,18 @@ impl CSCoinClient {
         let mut hasher = Sha256::new();
         hasher.input(&pkey.save_pub());
 
-        Ok(CSCoinClient {
+        println!("Connected to server with wallet ID: {}", hasher.result_str());
+
+        let mut ret_val = CSCoinClient {
             client:    response.begin(),
             keys:      pkey,
             wallet_id: hasher.result_str()
-        })
+        };
+
+        ret_val.register_wallet("ConcordiaUniversity").unwrap();
+
+        Ok(ret_val)
+
     }
 
     //Implementation of close command

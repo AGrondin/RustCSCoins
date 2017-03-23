@@ -158,7 +158,9 @@ pub struct CreateTransaction {
 
 #[derive(Deserialize, Debug)]
 pub struct SubmitProblem {
-    pub error: Option<String>,  //Unclear if empty/missing when no error?
+    #[serde(rename = "type")]
+    pub challenge_type: String,
+    pub error:          Option<String>,  //Unclear if empty/missing when no error?
 }
 
 

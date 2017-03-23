@@ -195,7 +195,7 @@ pub fn a_star(_grid:&Grid)->Option<(FnvHashMap<usize,Option<usize>>,usize)>
     came_from.insert(_grid.start_pt, None);
     cost_so_far.insert(_grid.start_pt, 0);
 
-    println!("{}:{}", (_grid.end_pt%_grid.size).to_string(),(_grid.end_pt/_grid.size).to_string());
+    //println!("{}:{}", (_grid.end_pt%_grid.size).to_string(),(_grid.end_pt/_grid.size).to_string());
 
 
     while let Some(State { cost, position }) = frontier.pop() {

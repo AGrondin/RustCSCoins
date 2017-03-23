@@ -76,6 +76,7 @@ fn main() {
 
                 //get new challenge
                 let new_challenge   = client.get_current_challenge().unwrap(); //TODO: ERROR CHECK
+                println!("New challenge after submission: {:?}", new_challenge);
                 challenge_time_left = new_challenge.time_left;
                 let new_assignment  = get_assignment(new_challenge);
 
@@ -92,6 +93,7 @@ fn main() {
 
             //get new challenge
             let new_challenge   = client.get_current_challenge().unwrap(); //TODO: ERROR CHECK
+            println!("New challenge after timeout: {:?}", new_challenge);
             challenge_time_left = new_challenge.time_left;
             let new_assignment  = get_assignment(new_challenge);
 
