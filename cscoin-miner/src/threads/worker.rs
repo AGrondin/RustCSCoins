@@ -42,29 +42,30 @@ impl Worker {
             }
 
             if found{
-              match assignment{
-              ThreadAssignment::SortedList(_, _, _, challenge_id)=>{
-                if challenge_id!=current_id{
-                  found=false;
-                  current_id=challenge_id;
-                }
+                  match assignment{
+                  ThreadAssignment::SortedList(_, _, _, challenge_id)=>{
+                    if challenge_id!=current_id{
+                      found=false;
+                      current_id=challenge_id;
+                    }
 
-              },
-              ThreadAssignment::ReverseSortedList(_, _, _, challenge_id)=>{
-                if challenge_id!=current_id{
-                  found=false;
-                  current_id=challenge_id;
-                }
+                  },
+                  ThreadAssignment::ReverseSortedList(_, _, _, challenge_id)=>{
+                    if challenge_id!=current_id{
+                      found=false;
+                      current_id=challenge_id;
+                    }
 
-              },
-              ThreadAssignment::ShortestPath(_, _, _, _, challenge_id)=>{
-                if challenge_id!=current_id{
-                  found=false;
-                  current_id=challenge_id;
-                }
+                  },
+                  ThreadAssignment::ShortestPath(_, _, _, _, challenge_id)=>{
+                    if challenge_id!=current_id{
+                      found=false;
+                      current_id=challenge_id;
+                    }
 
-              },
-              _=>{found = false;}
+                  },
+                  _=>{found = false;}
+                }
             }
             if !found{
             match assignment {
@@ -119,10 +120,9 @@ impl Worker {
                     }
                   }
                 }
-            }
-            }
-          }}
-
+               }
+             }
+           }
         ()
     }
 
