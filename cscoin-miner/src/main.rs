@@ -74,14 +74,30 @@ fn main() {
                 //Submit
                 println!("Submission result: {:?}", client.submission(nonce)); //TODO: ERROR CHECKING
 
-                //get new challenge
+                /*//get new challenge
                 let new_challenge   = client.get_current_challenge().unwrap(); //TODO: ERROR CHECK
                 println!("New challenge after submission: {:?}", new_challenge);
                 challenge_time_left = new_challenge.time_left;
                 let new_assignment  = get_assignment(new_challenge);
 
                 //Dispatch new assignment
-                worker_manager.set_new_assignment(new_assignment);
+                worker_manager.set_new_assignment(new_assignment);*/
+
+                //get new challenge
+                match client.get_current_challenge() {
+                    Ok(new_challenge) => {
+                        println!("New challenge after submission: {:?}", new_challenge);
+                        challenge_time_left  = new_challenge.time_left;
+                        challenge_begin_time = Instant::now();
+                        let new_assignment   = get_assignment(new_challenge);
+
+                        //Dispatch new assignment
+                        worker_manager.set_new_assignment(new_assignment);
+                    },
+                    Err(err) => {
+                        println!("Error getting new challenge after timeout: {:?}", err);
+                    }
+                };
             },
             None => {}
         }
@@ -92,20 +108,23 @@ fn main() {
             println!("Challenge timed out... Trying for the next one...");
 
             //get new challenge
-            let new_challenge    = client.get_current_challenge().unwrap(); //TODO: ERROR CHECK
-            println!("New challenge after timeout: {:?}", new_challenge);
-            challenge_time_left  = new_challenge.time_left;
-            challenge_begin_time = Instant::now();
-            let new_assignment   = get_assignment(new_challenge);
+            match client.get_current_challenge() {
+                Ok(new_challenge) => {
+                    println!("New challenge after timeout: {:?}", new_challenge);
+                    challenge_time_left  = new_challenge.time_left;
+                    challenge_begin_time = Instant::now();
+                    let new_assignment   = get_assignment(new_challenge);
 
-            //Dispatch new assignment
-            worker_manager.set_new_assignment(new_assignment);
-
+                    //Dispatch new assignment
+                    worker_manager.set_new_assignment(new_assignment);
+                },
+                Err(err) => {
+                    println!("Error getting new challenge after timeout: {:?}", err);
+                    println!("Going to try again...");
+                }
+            };
         }
-
-
         //if solution not found continue working
-
     }
 
     println!("\nStopping...");

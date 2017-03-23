@@ -51,6 +51,7 @@ impl Worker {
                     for (hash,nonce) in results{
                       if &(hash.as_bytes())[0..4]==prefix.as_bytes() {
                         (*self.nonce_sender.lock().unwrap()).send(nonce.to_string()).unwrap();
+                          println!("Nonce sent to main thread!.");
                         break;
                       }
                     }
@@ -64,6 +65,7 @@ impl Worker {
                   for (hash,nonce) in results{
                     if &(hash.as_bytes())[0..4]==prefix.as_bytes() {
                       (*self.nonce_sender.lock().unwrap()).send(nonce.to_string()).unwrap();
+                        println!("Nonce sent to main thread!.");
                       break;
                     }
                   }
@@ -79,6 +81,7 @@ impl Worker {
                       Some((h,n))=>{
                         if &(h.as_bytes())[0..4]==prefix.as_bytes() {
                           (*self.nonce_sender.lock().unwrap()).send(n.to_string()).unwrap();
+                            println!("Nonce sent to main thread!.");
                           break;
                         }
                       },

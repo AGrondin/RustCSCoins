@@ -227,7 +227,7 @@ pub fn a_star(_grid:&Grid)->Option<(FnvHashMap<usize,Option<usize>>,usize)>
     }
 
     // Goal not reachable
-    println!("Not reachable");
+    //println!("Not reachable");
     None
 }
 

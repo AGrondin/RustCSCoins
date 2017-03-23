@@ -97,6 +97,8 @@ impl ThreadManager {
         match self.main_rx.try_recv() {
             Ok(_) => {
 
+                println!("------ Solution Found Looping? ------");
+                println!("------ {:?}", self.main_rx);
                 let nonce          = self.main_rx.recv().unwrap();
                 let assignment_arc = self.challenge_handle.clone();
                 let assignment;
