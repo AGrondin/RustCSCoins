@@ -42,7 +42,7 @@ impl Worker {
 
             match assignment {
                 ThreadAssignment::Stop => {break;},
-                ThreadAssignment::SortedList(last_hash, prefix, num_int)=>{
+                ThreadAssignment::SortedList(last_hash, prefix, num_int, challenge_id)=>{
                     let mut results:Vec<(String, u64)>=Vec::with_capacity(WORK_CHUNK_SIZE);
                     for i in 0..WORK_CHUNK_SIZE{
                       results.push(self.work_miner.sorted_list_challenge(&last_hash, &prefix, num_int));
@@ -56,7 +56,7 @@ impl Worker {
                       }
                     }
                 },
-                ThreadAssignment::ReverseSortedList(last_hash, prefix, num_int)=>{
+                ThreadAssignment::ReverseSortedList(last_hash, prefix, num_int, challenge_id)=>{
                   let mut results:Vec<(String, u64)>=Vec::with_capacity(WORK_CHUNK_SIZE);
                   for i in 0..WORK_CHUNK_SIZE{
                     results.push(self.work_miner.reverse_challenge(&last_hash, &prefix, num_int));
@@ -70,7 +70,7 @@ impl Worker {
                     }
                   }
                 },
-                ThreadAssignment::ShortestPath(last_hash, prefix, size, num_blockers)=>{
+                ThreadAssignment::ShortestPath(last_hash, prefix, size, num_blockers, challenge_id)=>{
                   let mut results:Vec<Option<(String, u64)>>=Vec::with_capacity(WORK_CHUNK_SIZE);
                   for i in 0..WORK_CHUNK_SIZE{
                     results.push(self.work_miner.shortest_path_challenge(&last_hash, &prefix, size, num_blockers, 100));

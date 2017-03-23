@@ -19,11 +19,11 @@ use self::worker::Worker;
 #[derive(Clone, Debug)]
 pub enum ThreadAssignment {
     Stop,
-    //Last solution hash, hash prefix, nb_elements
-    SortedList(String, String, u64),
-    ReverseSortedList(String, String, u64),
-    //Last solution hash, hash prefix, grid_size, nb_blockers
-    ShortestPath(String, String, u64, u64)
+    //Last solution hash, hash prefix, nb_elements, current challenge id
+    SortedList(String, String, u64, u64),
+    ReverseSortedList(String, String, u64, u64),
+    //Last solution hash, hash prefix, grid_size, nb_blockers, current challenge id
+    ShortestPath(String, String, u64, u64, u64)
 }
 
 

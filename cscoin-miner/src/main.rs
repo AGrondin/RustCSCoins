@@ -141,14 +141,16 @@ pub fn get_assignment(current_challenge: server_comms::cmd_response::CurrentChal
             threads::ThreadAssignment::SortedList(
                 current_challenge.last_solution_hash,
                 current_challenge.hash_prefix,
-                current_challenge.parameters.nb_elements.unwrap()
+                current_challenge.parameters.nb_elements.unwrap(),
+                current_challenge.challenge_id
             )
         },
         "reverse_sorted_list" => {
             threads::ThreadAssignment::ReverseSortedList(
                 current_challenge.last_solution_hash,
                 current_challenge.hash_prefix,
-                current_challenge.parameters.nb_elements.unwrap()
+                current_challenge.parameters.nb_elements.unwrap(),
+                current_challenge.challenge_id
             )
         },
         "shortest_path" => {
@@ -157,6 +159,7 @@ pub fn get_assignment(current_challenge: server_comms::cmd_response::CurrentChal
                 current_challenge.hash_prefix,
                 current_challenge.parameters.grid_size.unwrap(),
                 current_challenge.parameters.nb_blockers.unwrap(),
+                current_challenge.challenge_id
             )
         }
         _ => {
