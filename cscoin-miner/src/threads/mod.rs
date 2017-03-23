@@ -64,6 +64,7 @@ impl ThreadManager {
             self.threads.push(thread::spawn(move || {
                 Worker::new(thread_tx, challenge).do_work(true);
             }));
+            println!("Thread #{}/{} started.", (i + 1), self.num_threads);
         }
 
     }
@@ -86,6 +87,7 @@ impl ThreadManager {
 
     pub fn set_new_assignment(&mut self, assignment: ThreadAssignment) {
         let assignment_mutex = self.challenge_handle.clone();
+        println!("New assignment: {:?}", assignment);
         *assignment_mutex.lock().unwrap() = assignment;
     }
 

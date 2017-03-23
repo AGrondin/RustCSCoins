@@ -30,7 +30,7 @@ mod threads;
 //Number of threads to use
 static NUM_THREADS:     u64 = 8;
 //Number of hashes to make per processing chunk
-static WORK_CHUNK_SIZE: u64 = 100;
+//static WORK_CHUNK_SIZE: u64 = 100;                GO SEE WORKER FILE
 
 
 fn main() {
@@ -42,14 +42,19 @@ fn main() {
     }).expect("Error setting Ctrl-C handler");
 
     //Init comms
-    let mut client         = server_comms::CSCoinClient::connect(server_comms::DEFAULT_URI).unwrap();
+    let mut client         = server_comms::CSCoinClient::connect(server_comms::TEST_URI).unwrap();
     let mut worker_manager = threads::ThreadManager::new(NUM_THREADS);
 
     //get first challenge and assign to workers
     let first_challenge  = client.get_current_challenge().unwrap();
+    println!("First challenge: {:?}", first_challenge);
+
     let first_assignment = get_assignment(first_challenge);
+    println!("First assignment: {:?}", first_assignment);
+
     worker_manager.setup(first_assignment.clone());
 
+    println!("Thread #1/{} started. (Main thread)", NUM_THREADS);
     while is_running.load(Ordering::SeqCst) {
 
         //check if connection dropped
@@ -80,8 +85,9 @@ fn main() {
 
     }
 
-    println!("Stopping...");
+    println!("\nStopping...");
     worker_manager.stop();
+    client.disconnect().unwrap();
 
 }
 
