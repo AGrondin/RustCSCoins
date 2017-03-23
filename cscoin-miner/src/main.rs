@@ -16,6 +16,7 @@ extern crate websocket;
 extern crate ctrlc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Instant;
 
 //Everything to do with communicating with the server.
 mod server_comms;
@@ -42,11 +43,15 @@ fn main() {
     }).expect("Error setting Ctrl-C handler");
 
     //Init comms
-    let mut client         = server_comms::CSCoinClient::connect(server_comms::TEST_URI).unwrap();
-    let mut worker_manager = threads::ThreadManager::new(NUM_THREADS);
+    let mut client               = server_comms::CSCoinClient::connect(server_comms::TEST_URI).unwrap();
+    let mut worker_manager       = threads::ThreadManager::new(NUM_THREADS);
+    let mut challenge_begin_time = Instant::now();
+    let mut challenge_time_left;
+
 
     //get first challenge and assign to workers
     let first_challenge  = client.get_current_challenge().unwrap();
+    challenge_time_left = first_challenge.time_left;
     println!("First challenge: {:?}", first_challenge);
 
     let first_assignment = get_assignment(first_challenge);
@@ -70,8 +75,9 @@ fn main() {
                 client.submission(nonce).unwrap(); //TODO: ERROR CHECKING
 
                 //get new challenge
-                let new_challenge = client.get_current_challenge().unwrap(); //TODO: ERROR CHECK
-                let new_assignment = get_assignment(new_challenge);
+                let new_challenge   = client.get_current_challenge().unwrap(); //TODO: ERROR CHECK
+                challenge_time_left = new_challenge.time_left;
+                let new_assignment  = get_assignment(new_challenge);
 
                 //Dispatch new assignment
                 worker_manager.set_new_assignment(new_assignment);
@@ -80,6 +86,20 @@ fn main() {
         }
 
         //Check if were out of time and need a new challenge
+        if challenge_begin_time.elapsed().as_secs() >= challenge_time_left {
+
+            println!("Challenge timed out... Trying for the next one...");
+
+            //get new challenge
+            let new_challenge   = client.get_current_challenge().unwrap(); //TODO: ERROR CHECK
+            challenge_time_left = new_challenge.time_left;
+            let new_assignment  = get_assignment(new_challenge);
+
+            //Dispatch new assignment
+            worker_manager.set_new_assignment(new_assignment);
+
+        }
+
 
         //if solution not found continue working
 
