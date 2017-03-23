@@ -30,7 +30,8 @@ impl Worker {
 
     //True for workers, false for main (main does some extra stuff)
     pub fn do_work(&mut self, do_loop: bool) -> (){
-
+        let mut found = false;
+        let mut current_id: u64 = 0;
         while do_loop {
 
             let assignment_arc = self.current_assignment.clone();
@@ -40,6 +41,32 @@ impl Worker {
                 assignment = (*assignment_arc.lock().unwrap()).clone();
             }
 
+            if found{
+              match assignment{
+              ThreadAssignment::SortedList(_, _, _, challenge_id)=>{
+                if challenge_id!=current_id{
+                  found=false;
+                  current_id=challenge_id;
+                }
+
+              },
+              ThreadAssignment::ReverseSortedList(_, _, _, challenge_id)=>{
+                if challenge_id!=current_id{
+                  found=false;
+                  current_id=challenge_id;
+                }
+
+              },
+              ThreadAssignment::ShortestPath(_, _, _, _, challenge_id)=>{
+                if challenge_id!=current_id{
+                  found=false;
+                  current_id=challenge_id;
+                }
+
+              },
+              _=>{found = false;}
+            }
+            if !found{
             match assignment {
                 ThreadAssignment::Stop => {break;},
                 ThreadAssignment::SortedList(last_hash, prefix, num_int, challenge_id)=>{
@@ -52,6 +79,7 @@ impl Worker {
                       if &(hash.as_bytes())[0..4]==prefix.as_bytes() {
                         (*self.nonce_sender.lock().unwrap()).send(nonce.to_string()).unwrap();
                           println!("Nonce sent to main thread!.");
+                          found=true;
                         break;
                       }
                     }
@@ -66,6 +94,7 @@ impl Worker {
                     if &(hash.as_bytes())[0..4]==prefix.as_bytes() {
                       (*self.nonce_sender.lock().unwrap()).send(nonce.to_string()).unwrap();
                         println!("Nonce sent to main thread!.");
+                        found=true;
                       break;
                     }
                   }
@@ -82,6 +111,7 @@ impl Worker {
                         if &(h.as_bytes())[0..4]==prefix.as_bytes() {
                           (*self.nonce_sender.lock().unwrap()).send(n.to_string()).unwrap();
                             println!("Nonce sent to main thread!.");
+                            found=true;
                           break;
                         }
                       },
@@ -90,9 +120,8 @@ impl Worker {
                   }
                 }
             }
-
-
-        }
+            }
+          }}
 
         ()
     }
