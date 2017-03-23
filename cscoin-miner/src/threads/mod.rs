@@ -95,8 +95,9 @@ impl ThreadManager {
     //None otherwise
     pub fn get_solution(&mut self) -> Option<String> {
         match self.main_rx.try_recv() {
-            Ok(nonce) => {
+            Ok(_) => {
 
+                let nonce          = self.main_rx.recv().unwrap();
                 let assignment_arc = self.challenge_handle.clone();
                 let assignment;
 
