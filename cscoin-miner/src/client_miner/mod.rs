@@ -11,6 +11,7 @@ use std::cmp;
 use crypto::digest::Digest;
 use crypto::sha2::Sha256;
 use byteorder::{ByteOrder, LittleEndian};
+use rustc_serialize::hex::ToHex;
 use std::collections::BinaryHeap;
 use fnv::FnvHashSet;
 use fnv::FnvHashMap;
@@ -99,7 +100,11 @@ impl Miner{
 
         self.hasher.input_str(&concat_string);
 
-        let hash_res=self.hasher.result_str();
+	let mut hash_buf:[u8;32]=[0;32];
+
+        self.hasher.result(&mut hash_buf);
+
+	let hash_res = (&hash_buf).to_hex();
 
         return (hash_res, nonce);
 
@@ -119,8 +124,12 @@ impl Miner{
         self.hasher.reset();
 
         self.hasher.input_str(&concat_string);
+        
+        let mut hash_buf:[u8;32]=[0;32];
 
-        let hash_res=self.hasher.result_str();
+        self.hasher.result(&mut hash_buf);
+
+	let hash_res = (&hash_buf).to_hex();
 
         return (hash_res, nonce);
 
