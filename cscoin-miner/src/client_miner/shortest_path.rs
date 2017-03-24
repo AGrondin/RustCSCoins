@@ -11,15 +11,17 @@ use std::usize;
 
 
 
+
+
 #[derive(Eq, PartialEq, Copy, Clone)]
+
 struct State {
-    cost: usize,
-    position: usize,
+    cost_pos: (usize,usize)
 }
 
 impl Ord for State {
     fn cmp(&self, other: &State) -> Ordering {
-        other.cost.cmp(&self.cost)
+        other.cost_pos.cmp(&self.cost_pos)
     }
 }
 
@@ -188,47 +190,65 @@ pub fn a_star(_grid:&Grid)->Option<(FnvHashMap<usize,Option<usize>>,usize)>
 {
     let mut frontier=BinaryHeap::new();
 
-    let mut came_from=FnvHashMap::default();
-    let mut cost_so_far=FnvHashMap::default();
+   let mut came_from=FnvHashMap::default();
+   let mut cost_so_far=FnvHashMap::default();
 
-    frontier.push(State{cost:0, position:_grid.start_pt});
-    came_from.insert(_grid.start_pt, None);
-    cost_so_far.insert(_grid.start_pt, 0);
+   frontier.push(State{ cost_pos:(0, _grid.start_pt)});
+   came_from.insert(_grid.start_pt, None);
 
-    //println!("{}:{}", (_grid.end_pt%_grid.size).to_string(),(_grid.end_pt/_grid.size).to_string());
+   cost_so_far.insert(_grid.start_pt, 0);
 
+   //println!("{}:{}", (_grid.end_pt%_grid.size).to_string(),(_grid.end_pt/_grid.size).to_string());
 
-    while let Some(State { cost, position }) = frontier.pop() {
-        // Alternatively we could have continued to find all shortest paths
+   while let Some(State { cost_pos }) = frontier.pop() {
 
-        //println!("{}:{}", (position%_grid.size).to_string(),(position/_grid.size).to_string());
-        if position == _grid.end_pt {
-            //println!("Found it!");
-            return Some((came_from,cost));
-        }
-        // For each node we can reach, see if we can find a way with
-        // a lower cost going through this node
-        for point in &_grid.neighbours(position) {
-            match point{
-                &Some(pt)=>{
-                    let new_cost = cost_so_far[&position] + 1;
+       // Alternatively we could have continued to find all shortest paths
 
-                    if !cost_so_far.contains_key(&pt) || cost_so_far[&pt]>new_cost{
-                        cost_so_far.insert(pt, new_cost);
-                        let next_state=State{cost: new_cost+_grid.distance_h(pt,_grid.end_pt), position: pt};
+       let (cost, position) = cost_pos;
 
-                        frontier.push(next_state);
-                        came_from.insert(pt, Some(position));
-                    }
-                },
-                &None=>{}
-            }
-        }
-    }
+       //println!("{}:{}", (position%_grid.size).to_string(),(position/_grid.size).to_string());
 
-    // Goal not reachable
-    //println!("Not reachable");
-    None
+       if position == _grid.end_pt {
+
+           //println!("Found it!");
+
+           return Some((came_from,cost));
+
+       }
+
+       // For each node we can reach, see if we can find a way with
+
+       // a lower cost going through this node
+
+       for point in &_grid.neighbours(position) {
+
+           match point{
+
+               &Some(pt)=>{
+
+                   let new_cost = cost_so_far[&position] + 1;
+
+                   if !cost_so_far.contains_key(&pt) || cost_so_far[&pt]>new_cost{
+
+                       cost_so_far.insert(pt, new_cost);
+
+                       //let next_state=State{cost: new_cost+_grid.distance_h(pt,_grid.end_pt), position: pt};
+
+                       let next_state=State{cost_pos: (new_cost, pt)};
+
+                       frontier.push(next_state);
+
+                       came_from.insert(pt, Some(position));
+
+                   }
+               },
+
+               &None=>{}
+           }
+       }
+   }
+
+   None
 }
 
 pub fn reconstruct_path(_grid:&Grid, came_from: FnvHashMap<usize,Option<usize>>, cost: usize)->String

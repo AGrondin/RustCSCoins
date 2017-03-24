@@ -2,7 +2,7 @@
 pub mod shortest_path;
 
 use mersenne_twister::MersenneTwister;
-use rand::{Rng, SeedableRng};
+use rand::{Rng, SeedableRng, thread_rng, ThreadRng};
 use std::mem;
 use std::marker::Copy;
 use std::u32;
@@ -20,7 +20,8 @@ use client_miner::shortest_path::{Grid, a_star, reconstruct_path};
 pub struct Miner{
     rng: MersenneTwister,
     lastSeed: u64,
-    hasher: Sha256
+    hasher: Sha256,
+    nonce_rng: ThreadRng
 }
 
 impl Miner{
@@ -30,7 +31,8 @@ impl Miner{
         Miner{
             rng: SeedableRng::from_seed(0),
             lastSeed: 0,
-            hasher: Sha256::new()
+            hasher: Sha256::new(),
+            nonce_rng: thread_rng()
         }
     }
 
@@ -85,7 +87,7 @@ impl Miner{
     pub fn sorted_list_challenge(&mut self, last_solution:&String, prefix:&String, num_ints:u64) -> (String,u64)
     {
 
-        let nonce = self.rng.next_u64();
+        let nonce = self.nonce_rng.next_u64();
 
         let seed = self.get_seed(last_solution, nonce);
 
@@ -106,7 +108,7 @@ impl Miner{
     pub fn reverse_challenge(&mut self, last_solution:&String, prefix: &String, num_ints:u64) ->(String,u64)
     {
 
-        let nonce = self.rng.next_u64();
+        let nonce = self.nonce_rng.next_u64();
 
         let seed = self.get_seed(last_solution, nonce);
 
@@ -131,7 +133,7 @@ impl Miner{
     {
         for i in 0..num_loops{
 
-            let nonce = self.rng.next_u64();
+            let nonce = self.nonce_rng.next_u64();
 
             let seed=self.get_seed(last_solution, nonce);
 
