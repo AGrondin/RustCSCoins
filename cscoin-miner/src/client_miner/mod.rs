@@ -44,8 +44,6 @@ impl Miner{
 
         let mut numbers = output.into_sorted_vec();
 
-        numbers.reverse();
-
         return numbers.iter().join("")
     }
 
