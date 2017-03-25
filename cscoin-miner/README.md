@@ -16,13 +16,29 @@ tar -czvf cscoins-concordia.tar.gz .
 source config/env.rc
 ```
 
-- Build and run
+- Build
 
 ```
-docker --config config build -t "cscoins-concordia-miner-test" .
+sudo docker --config config build -t "cscoins-concordia-miner" .
+```
+
+- Create
+
+```
+sudo docker --config config create cscoins-concordia-miner
+```
+
+- Start
+
+```
+sudo docker --config config start cscoins-concordia-miner
+```
+
+
+
+
+
+```
 sudo docker run --net=host --name cscoins-client -it cscoins-concordia-miner-test sh -c "cargo run --release"
 ```
-
-
-
 
