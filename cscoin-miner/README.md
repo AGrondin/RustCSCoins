@@ -19,25 +19,22 @@ source config/env.rc
 - Build
 
 ```
-sudo docker --config config build -t "cscoins-concordia-miner" .
+sudo docker --config config build -t "myminer" .
 ```
 
 - Create
 
 ```
-sudo docker --config config create cscoins-concordia-miner
+sudo docker --config config create myminer
 ```
 
 - Start
 
 ```
-sudo docker --config config start cscoins-concordia-miner
+sudo docker --config config start myminer
 ```
 
-
-
-
-
+### OLD
 ```
 sudo docker run --net=host --name cscoins-client -it cscoins-concordia-miner-test sh -c "cargo run --release"
 ```
