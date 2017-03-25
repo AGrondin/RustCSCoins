@@ -1,9 +1,7 @@
 FROM jimmycuadra/rust:latest
 
+ADD ./ /home/cscoin-miner
+
 RUN apt-get update
 
-ADD cscoins-concordia.tar.gz /home/cscoins-concordia.tar.gz
-
-RUN tar -xzvf cscoins-concordia.tar.gz
-
-WORKDIR /home
+WORKDIR /home/cscoin-miner

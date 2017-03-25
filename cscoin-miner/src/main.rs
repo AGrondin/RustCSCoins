@@ -43,7 +43,7 @@ fn main() {
     }).expect("Error setting Ctrl-C handler");
 
     //Init comms
-    let mut client               = server_comms::CSCoinClient::connect(server_comms::TEST_URI).unwrap();
+    let mut client               = server_comms::CSCoinClient::connect(server_comms::DEFAULT_URI).unwrap();
     let mut worker_manager       = threads::ThreadManager::new(NUM_THREADS);
     let mut challenge_begin_time = Instant::now();
     let mut challenge_time_left;
